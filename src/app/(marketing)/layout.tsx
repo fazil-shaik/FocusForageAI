@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button"; // Note: I need to create this button component or use standard HTML for now. I'll use standard Tailwind for now to avoid dependency on shadcn right away, or build a simple one.
+// import { Button } from "@/components/ui/button";
 
 export default function MarketingLayout({
     children,

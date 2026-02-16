@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateDeepWorkPlan } from "@/lib/gemini-planner";
-import { auth } from "../../../../lib/auth";
+import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
 export async function POST(req: NextRequest) {
