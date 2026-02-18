@@ -1,19 +1,22 @@
 "use client";
 
 import { motion, useAnimation } from "framer-motion";
-import { Play, CheckCircle, Plus, BrainCircuit, MousePointer2, LayoutDashboard, ListTodo, BarChart3, Clock, Calendar, TrendingUp, Zap, Activity } from "lucide-react";
+import { Play, CheckCircle, Plus, BrainCircuit, MousePointer2, LayoutDashboard, ListTodo, BarChart3, Calendar, TrendingUp, Zap, Activity, CreditCard, Lock, User, ArrowRight, ShieldCheck } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 export function HeroDemo() {
-    const [activeView, setActiveView] = useState<"dashboard" | "tasks" | "analytics">("dashboard");
+    const [activeView, setActiveView] = useState<"login" | "dashboard" | "tasks" | "analytics">("login");
     const [isPlaying, setIsPlaying] = useState(false);
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [tasks, setTasks] = useState([
         { id: 1, title: "Design Landing Page", priority: "High", status: "todo" },
         { id: 2, title: "Implement Auth Flow", priority: "Medium", status: "todo" },
     ]);
-    const [inputValue, setInputValue] = useState("");
+    const [inputValue, setInputValue] = useState(""); // For Task input
+    const [emailInput, setEmailInput] = useState("");
+    const [passwordInput, setPasswordInput] = useState("");
     const [showModal, setShowModal] = useState(false);
+    const [isPro, setIsPro] = useState(false);
 
     // Interaction States for hover effects
     const [hoveredElement, setHoveredElement] = useState<string | null>(null);
@@ -26,11 +29,11 @@ export function HeroDemo() {
     useEffect(() => {
         let mounted = true;
 
-        const typeText = async (text: string) => {
+        const typeText = async (text: string, setter: (s: string) => void) => {
             for (let i = 0; i <= text.length; i++) {
                 if (!mounted) return;
-                setInputValue(text.slice(0, i));
-                await new Promise(r => setTimeout(r, 50 + Math.random() * 50)); // Random typing speed
+                setter(text.slice(0, i));
+                await new Promise(r => setTimeout(r, 40 + Math.random() * 40));
             }
         };
 
@@ -38,7 +41,7 @@ export function HeroDemo() {
             if (!mounted) return;
 
             // --- RESET ---
-            setActiveView("dashboard");
+            setActiveView("login");
             setIsPlaying(false);
             setTimeLeft(25 * 60);
             setTasks([
@@ -46,77 +49,101 @@ export function HeroDemo() {
                 { id: 2, title: "Implement Auth Flow", priority: "Medium", status: "todo" },
             ]);
             setInputValue("");
+            setEmailInput("");
+            setPasswordInput("");
             setShowModal(false);
+            setIsPro(false);
             setHoveredElement(null);
             await cursorControls.set({ x: 0, y: 0, opacity: 0 });
 
             await new Promise(r => setTimeout(r, 800));
 
-            // --- 1. START FOCUS SESSION (Dashboard) ---
-            await cursorControls.start({ opacity: 1, x: 20, y: 30, transition: { duration: 0.5 } });
+            // ==========================================
+            // 1. LOGIN FLOW
+            // ==========================================
+            await cursorControls.start({ opacity: 1, x: 100, y: 100, transition: { duration: 0.5 } });
 
+            // Move to Email Input (approx center)
+            await cursorControls.start({ x: 400, y: 180, transition: { duration: 0.8 } });
+            await typeText("demo@focusforge.ai", setEmailInput);
+
+            // Move to Password Input
+            await cursorControls.start({ x: 400, y: 250, transition: { duration: 0.5 } });
+            await typeText("********", setPasswordInput);
+
+            // Move to Login Button
+            await cursorControls.start({ x: 400, y: 320, transition: { duration: 0.5 } });
+            setHoveredElement("login-btn");
+            await new Promise(r => setTimeout(r, 200));
+            // Click Login
+            await buttonControls.start({ scale: 0.95, transition: { duration: 0.1 } });
+            await buttonControls.start({ scale: 1, transition: { duration: 0.1 } });
+            setHoveredElement(null);
+
+            await new Promise(r => setTimeout(r, 500));
+            setActiveView("dashboard");
+
+            // ==========================================
+            // 2. DASHBOARD FLOW
+            // ==========================================
             // Move to 'Start' button - Center of square is roughly x: 220, y: 240 relative to container top-left
             await cursorControls.start({ x: 220, y: 240, transition: { duration: 1, ease: "easeInOut" } });
             setHoveredElement("play-btn");
             await buttonControls.start({ scale: 0.9, transition: { duration: 0.1 } });
-            await new Promise(r => setTimeout(r, 100)); // Click hold
+            await new Promise(r => setTimeout(r, 100));
             await buttonControls.start({ scale: 1, transition: { duration: 0.1 } });
             setIsPlaying(true);
             setHoveredElement(null);
 
             // Simulate timer running for a bit
-            await new Promise(r => setTimeout(r, 1500));
+            await new Promise(r => setTimeout(r, 1200));
 
-            // --- 2. SWITCH TO TASKS VIEW ---
+            // ==========================================
+            // 3. TASKS FLOW
+            // ==========================================
             // Move to sidebar 'Tasks' icon (x: ~40, y: ~150)
             await cursorControls.start({ x: 40, y: 150, transition: { duration: 0.8 } });
             setHoveredElement("nav-tasks");
-            // Click Sim
             await new Promise(r => setTimeout(r, 200));
             setActiveView("tasks");
             setHoveredElement(null);
 
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 400));
 
-            // --- 3. CREATE NEW TASK ---
             // Move to "New Task" button (top right, x: ~750, y: ~50)
-            await cursorControls.start({ x: 750, y: 50, transition: { duration: 1 } });
+            await cursorControls.start({ x: 750, y: 50, transition: { duration: 0.8 } });
             setHoveredElement("new-task-btn");
-            // Click
             await new Promise(r => setTimeout(r, 200));
             setShowModal(true);
             setHoveredElement(null);
 
             // Move to input field (center, x: ~400, y: ~200)
             await cursorControls.start({ x: 400, y: 200, transition: { duration: 0.5 } });
-
-            // Type "Review PRs"
-            await typeText("Review Pull Requests");
+            await typeText("Review Pull Requests", setInputValue);
 
             // Move to "Create" button in modal (bottom right of modal, x: ~580, y: ~320)
-            await cursorControls.start({ x: 580, y: 320, transition: { duration: 0.8 } });
+            await cursorControls.start({ x: 580, y: 320, transition: { duration: 0.5 } });
             setHoveredElement("create-task-confirm");
-            // Click
             await new Promise(r => setTimeout(r, 200));
             setTasks(prev => [{ id: 3, title: "Review Pull Requests", priority: "High", status: "todo" }, ...prev]);
             setShowModal(false);
             setHoveredElement(null);
 
-            await new Promise(r => setTimeout(r, 800));
+            await new Promise(r => setTimeout(r, 500));
 
-            // --- 4. SWITCH TO ANALYTICS ---
+            // ==========================================
+            // 4. ANALYTICS FLOW
+            // ==========================================
             // Move to sidebar 'Analytics' icon (x: ~40, y: ~210)
-            await cursorControls.start({ x: 40, y: 210, transition: { duration: 1.2 } });
+            await cursorControls.start({ x: 40, y: 210, transition: { duration: 0.8 } });
             setHoveredElement("nav-analytics");
-            // Click
             await new Promise(r => setTimeout(r, 200));
             setActiveView("analytics");
             setHoveredElement(null);
 
             await new Promise(r => setTimeout(r, 3000)); // Let user see the charts
 
-            // --- 5. LOOP ---
-            // Fade out
+            // --- LOOP (Reset to Login) ---
             await cursorControls.start({ opacity: 0, transition: { duration: 0.5 } });
             sequence();
         };
@@ -153,40 +180,80 @@ export function HeroDemo() {
                 animate={{ opacity: 1, y: 0 }}
                 className="relative bg-card rounded-[2rem] shadow-2xl overflow-hidden border-4 border-card/50 ring-1 ring-white/10 aspect-video flex"
             >
-                {/* Sidebar */}
-                <div className="w-20 bg-muted/30 border-r border-border flex flex-col items-center py-8 gap-8 z-10">
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-inner">
-                        <BrainCircuit className="w-6 h-6" />
-                    </div>
+                {/* VIEW: LOGIN (Full Screen Overlay) */}
+                {activeView === 'login' && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-20 bg-background flex flex-col items-center justify-center p-8"
+                    >
+                        <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-primary/20">
+                            <BrainCircuit className="w-8 h-8 text-primary-foreground" />
+                        </div>
+                        <h2 className="text-2xl font-bold mb-8">Welcome Back</h2>
+                        <div className="w-full max-w-xs space-y-4">
+                            <div className="space-y-2">
+                                <div className="text-xs font-bold text-muted-foreground ml-1">Email</div>
+                                <div className="h-10 border border-input rounded-lg bg-card px-3 flex items-center text-sm shadow-sm">
+                                    {emailInput}{activeView === 'login' && !passwordInput && <span className="animate-pulse">|</span>}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="text-xs font-bold text-muted-foreground ml-1">Password</div>
+                                <div className="h-10 border border-input rounded-lg bg-card px-3 flex items-center text-sm shadow-sm">
+                                    {passwordInput.replace(/./g, '•')}{activeView === 'login' && passwordInput && <span className="animate-pulse">|</span>}
+                                </div>
+                            </div>
+                            <motion.button
+                                animate={buttonControls}
+                                className={`w-full h-10 bg-primary text-primary-foreground rounded-lg font-bold text-sm shadow-lg mt-4 transition-transform ${hoveredElement === 'login-btn' ? 'scale-105' : ''}`}
+                            >
+                                Log In
+                            </motion.button>
+                        </div>
+                    </motion.div>
+                )}
 
-                    <div className="flex flex-col gap-6 w-full px-4">
-                        <SidebarIcon active={activeView === 'dashboard'} hover={hoveredElement === 'nav-dashboard'} icon={<LayoutDashboard />} />
-                        <SidebarIcon active={activeView === 'tasks'} hover={hoveredElement === 'nav-tasks'} icon={<ListTodo />} />
-                        <SidebarIcon active={activeView === 'analytics'} hover={hoveredElement === 'nav-analytics'} icon={<BarChart3 />} />
-                        <SidebarIcon active={false} icon={<Calendar />} />
+                {/* Sidebar (Hidden on Login) */}
+                {activeView !== 'login' && (
+                    <div className="w-20 bg-muted/30 border-r border-border flex flex-col items-center py-8 gap-8 z-10 transition-all duration-500">
+                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-inner">
+                            <BrainCircuit className="w-6 h-6" />
+                        </div>
+
+                        <div className="flex flex-col gap-6 w-full px-4">
+                            <SidebarIcon active={activeView === 'dashboard'} hover={hoveredElement === 'nav-dashboard'} icon={<LayoutDashboard />} />
+                            <SidebarIcon active={activeView === 'tasks'} hover={hoveredElement === 'nav-tasks'} icon={<ListTodo />} />
+                            <SidebarIcon active={activeView === 'analytics'} hover={hoveredElement === 'nav-analytics'} icon={<BarChart3 />} />
+                            <SidebarIcon active={false} icon={<Calendar />} />
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Main Content Area */}
                 <div className="flex-1 bg-background/50 p-8 overflow-hidden relative flex flex-col">
                     {/* Header */}
-                    <div className="flex justify-between items-center mb-6 shrink-0">
-                        <h2 className="text-2xl font-bold capitalize flex items-center gap-2">
-                            {activeView === 'analytics' && <BarChart3 className="w-6 h-6 text-primary" />}
-                            {activeView === 'tasks' && <ListTodo className="w-6 h-6 text-primary" />}
-                            {activeView === 'dashboard' && <LayoutDashboard className="w-6 h-6 text-primary" />}
-                            {activeView}
-                        </h2>
-                        <div className="flex items-center gap-3">
-                            <div className="text-right">
-                                <div className="text-xs text-muted-foreground font-bold">SHAIB P.</div>
-                                <div className="text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-full inline-block">Pro Plan</div>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold shadow-md">
-                                SP
+                    {activeView !== 'login' && (
+                        <div className="flex justify-between items-center mb-6 shrink-0">
+                            <h2 className="text-2xl font-bold capitalize flex items-center gap-2">
+                                {activeView === 'analytics' && <BarChart3 className="w-6 h-6 text-primary" />}
+                                {activeView === 'tasks' && <ListTodo className="w-6 h-6 text-primary" />}
+                                {activeView === 'dashboard' && <LayoutDashboard className="w-6 h-6 text-primary" />}
+                                {activeView}
+                            </h2>
+                            <div className={`flex items-center gap-3 transition-transform ${hoveredElement === 'user-profile' ? 'scale-110' : ''}`}>
+                                <div className="text-right">
+                                    <div className="text-xs text-muted-foreground font-bold">SHAIB P.</div>
+                                    <div className="text-[10px] px-2 py-0.5 rounded-full inline-block bg-primary/20 text-primary">
+                                        Pro Plan
+                                    </div>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold shadow-md">
+                                    SP
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
+
 
                     <div className="relative flex-1 overflow-hidden">
                         {/* VIEW: DASHBOARD */}
@@ -298,7 +365,7 @@ export function HeroDemo() {
                             </motion.div>
                         )}
 
-                        {/* MODAL */}
+                        {/* MODAL (New Task) */}
                         {showModal && (
                             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-20">
                                 <motion.div
@@ -337,7 +404,7 @@ export function HeroDemo() {
 
 function SidebarIcon({ active, hover, icon }: { active: boolean, hover?: boolean, icon: React.ReactNode }) {
     return (
-        <div className={`p-3 rounded-xl transition-all duration-300 ${active ? 'bg-primary text-primary-foreground shadow-lg scale-105' : 'text-muted-foreground hover:bg-muted'} ${hover ? 'bg-accent/20 text-accent scale-110' : ''}`}>
+        <div className={`p-3 rounded-xl transition-all duration-300 ${active ? 'bg-primary text-primary-foreground shadow-lg scale-105' : 'text-muted-foreground hover:bg-muted'}`}>
             {React.cloneElement(icon as React.ReactElement, { size: 20 })}
         </div>
     );
