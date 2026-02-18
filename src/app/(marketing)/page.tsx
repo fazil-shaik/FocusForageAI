@@ -1,4 +1,7 @@
+"use client";
+
 import { motion } from "framer-motion";
+
 import { ArrowRight, Brain, Clock, Zap, Shield, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { BackgroundBeams } from "@/components/ui/background-beams";

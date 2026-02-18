@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Play, Pause, RefreshCw, Zap, BrainCircuit } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { saveFocusSession } from "@/app/(app)/focus/actions";
+
 
 export function FocusTimer() {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -15,11 +17,20 @@ export function FocusTimer() {
             interval = setInterval(() => {
                 setTimeLeft((prev) => prev - 1);
             }, 1000);
-        } else if (timeLeft === 0) {
+        } else if (timeLeft === 0 && isPlaying) {
             setIsPlaying(false);
+            // Auto-save session
+            saveFocusSession({
+                duration: 25, // Default for now, could be dynamic
+                taskName: "Dashboard Timer Session"
+            }).then(() => {
+                // Could show toast here
+                console.log("Session saved");
+            });
         }
         return () => clearInterval(interval);
     }, [isPlaying, timeLeft]);
+
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
