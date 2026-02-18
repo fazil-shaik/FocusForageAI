@@ -25,7 +25,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
 
     const columns = [
         { id: "todo", title: "To Do", color: "bg-red-500/10 text-red-500 border-red-500/20" },
-        { id: "in_progress", title: "In Progress", color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+        { id: "in_progress", title: "In Progress", color: "bg-primary/10 text-primary border-primary/20" },
         { id: "done", title: "Done", color: "bg-green-500/10 text-green-500 border-green-500/20" },
     ];
 
@@ -55,10 +55,10 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     return (
         <div className="h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Task Flow</h1>
+                <h1 className="text-3xl font-bold text-foreground">Task Flow</h1>
                 <button
                     onClick={() => setIsCreateOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors font-medium shadow-md"
                 >
                     <Plus className="w-4 h-4" /> New Task
                 </button>
@@ -66,10 +66,10 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full overflow-x-auto pb-10">
                 {columns.map(col => (
-                    <div key={col.id} className="flex flex-col h-full min-h-[500px] bg-white/5 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
-                        <div className={`flex items-center justify-between p-3 rounded-xl mb-4 border ${col.color}`}>
+                    <div key={col.id} className="flex flex-col h-full min-h-[500px] bg-card/50 rounded-3xl p-4 border border-border backdrop-blur-sm">
+                        <div className={`flex items-center justify-between p-3 rounded-2xl mb-4 border ${col.color}`}>
                             <span className="font-semibold">{col.title}</span>
-                            <span className="text-xs font-bold px-2 py-1 bg-black/20 rounded-full">
+                            <span className="text-xs font-bold px-2 py-1 bg-background/50 rounded-full">
                                 {tasks.filter(t => (t.status || "todo") === col.id).length}
                             </span>
                         </div>
@@ -86,7 +86,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
                                 ))}
                             </AnimatePresence>
                             {tasks.filter(t => (t.status || "todo") === col.id).length === 0 && (
-                                <div className="text-center text-gray-500 py-10 text-sm italic">
+                                <div className="text-center text-muted-foreground py-10 text-sm italic">
                                     No tasks here
                                 </div>
                             )}
@@ -97,33 +97,33 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
 
             {/* Create Task Modal */}
             {isCreateOpen && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-zinc-900 border border-white/10 p-6 rounded-2xl w-full max-w-md shadow-2xl"
+                        className="bg-card border border-border p-8 rounded-3xl w-full max-w-md shadow-2xl"
                     >
-                        <h2 className="text-xl font-bold mb-4">Create New Task</h2>
+                        <h2 className="text-xl font-bold mb-4 text-foreground">Create New Task</h2>
                         <form action={handleCreate} className="space-y-4">
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Title</label>
-                                <input name="title" required className="w-full bg-black/50 border border-white/10 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="What needs to be done?" />
+                                <label className="block text-sm text-foreground font-bold mb-1">Title</label>
+                                <input name="title" required className="w-full bg-input border border-transparent rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none text-foreground" placeholder="What needs to be done?" />
                             </div>
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Description</label>
-                                <textarea name="description" className="w-full bg-black/50 border border-white/10 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 outline-none" rows={3} placeholder="Add details..." />
+                                <label className="block text-sm text-foreground font-bold mb-1">Description</label>
+                                <textarea name="description" className="w-full bg-input border border-transparent rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none text-foreground" rows={3} placeholder="Add details..." />
                             </div>
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Priority</label>
-                                <select name="priority" className="w-full bg-black/50 border border-white/10 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 outline-none">
+                                <label className="block text-sm text-foreground font-bold mb-1">Priority</label>
+                                <select name="priority" className="w-full bg-input border border-transparent rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none text-foreground">
                                     <option value="low">Low</option>
                                     <option value="medium">Medium</option>
                                     <option value="high">High</option>
                                 </select>
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
-                                <button type="button" onClick={() => setIsCreateOpen(false)} className="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium">Create Task</button>
+                                <button type="button" onClick={() => setIsCreateOpen(false)} className="px-4 py-2 text-muted-foreground hover:text-foreground">Cancel</button>
+                                <button type="submit" className="px-6 py-2 bg-primary hover:opacity-90 text-primary-foreground rounded-full font-bold shadow-lg">Create Task</button>
                             </div>
                         </form>
                     </motion.div>
@@ -135,9 +135,9 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
 
 function TaskCard({ task, onStatusChange, onDelete }: { task: Task, onStatusChange: (id: string, status: string) => void, onDelete: (id: string) => void }) {
     const priorityColors = {
-        low: "text-blue-400",
-        medium: "text-yellow-400",
-        high: "text-red-400"
+        low: "text-blue-500",
+        medium: "text-yellow-500",
+        high: "text-red-500"
     };
 
     return (
@@ -146,23 +146,23 @@ function TaskCard({ task, onStatusChange, onDelete }: { task: Task, onStatusChan
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-black/40 border border-white/5 p-4 rounded-xl group hover:border-purple-500/30 transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.1)]"
+            className="bg-card border border-border p-4 rounded-2xl group hover:border-primary/30 transition-all hover:shadow-lg"
         >
             <div className="flex justify-between items-start mb-2">
-                <h3 className="font-medium text-white">{task.title}</h3>
+                <h3 className="font-bold text-foreground">{task.title}</h3>
                 <div className="relative">
-                    <button onClick={() => onDelete(task.id)} className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => onDelete(task.id)} className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Trash className="w-4 h-4" />
                     </button>
                 </div>
             </div>
 
             {task.description && (
-                <p className="text-sm text-gray-400 mb-3 line-clamp-2">{task.description}</p>
+                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
             )}
 
             <div className="flex items-center justify-between mt-2">
-                <div className={`text-xs font-medium capitalize flex items-center gap-1 ${priorityColors[task.priority as keyof typeof priorityColors] || "text-gray-400"}`}>
+                <div className={`text-xs font-medium capitalize flex items-center gap-1 ${priorityColors[task.priority as keyof typeof priorityColors] || "text-muted-foreground"}`}>
                     <AlertCircle className="w-3 h-3" />
                     {task.priority}
                 </div>
@@ -170,12 +170,12 @@ function TaskCard({ task, onStatusChange, onDelete }: { task: Task, onStatusChan
                 <div className="flex gap-1">
                     {/* Quick Actions moved to hover or a menu ideally */}
                     {task.status !== 'done' && (
-                        <button onClick={() => onStatusChange(task.id, 'done')} title="Mark Done" className="p-1 hover:bg-green-500/20 rounded text-gray-500 hover:text-green-500">
+                        <button onClick={() => onStatusChange(task.id, 'done')} title="Mark Done" className="p-1 hover:bg-green-500/20 rounded text-muted-foreground hover:text-green-500">
                             <CheckCircle className="w-4 h-4" />
                         </button>
                     )}
                     {task.status === 'todo' && (
-                        <button onClick={() => onStatusChange(task.id, 'in_progress')} title="Start" className="p-1 hover:bg-yellow-500/20 rounded text-gray-500 hover:text-yellow-500">
+                        <button onClick={() => onStatusChange(task.id, 'in_progress')} title="Start" className="p-1 hover:bg-primary/20 rounded text-muted-foreground hover:text-primary">
                             <Clock className="w-4 h-4" />
                         </button>
                     )}

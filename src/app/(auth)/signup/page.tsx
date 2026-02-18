@@ -31,40 +31,40 @@ export default function SignUp() {
     };
 
     return (
-        <div className="bg-neutral-900/50 border border-white/10 rounded-2xl p-8 backdrop-blur-md shadow-2xl">
+        <div className="bg-card/80 border border-border rounded-[2rem] p-8 backdrop-blur-md shadow-2xl max-w-md w-full mx-4">
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Join FocusForge</h1>
-                <p className="text-gray-400 text-sm mt-2">Start your deep work journey today.</p>
+                <h1 className="text-3xl font-bold text-foreground mb-2">Join FocusForge</h1>
+                <p className="text-muted-foreground text-sm">Start your deep work journey today.</p>
             </div>
 
             <div className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                    <label className="block text-sm font-bold text-foreground mb-2">Name</label>
                     <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-600"
+                        className="w-full bg-input border border-transparent focus:border-primary rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
                         placeholder="John Doe"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                    <label className="block text-sm font-bold text-foreground mb-2">Email</label>
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-600"
+                        className="w-full bg-input border border-transparent focus:border-primary rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
                         placeholder="you@example.com"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                    <label className="block text-sm font-bold text-foreground mb-2">Password</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-600"
+                        className="w-full bg-input border border-transparent focus:border-primary rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
                         placeholder="••••••••"
                     />
                 </div>
@@ -72,13 +72,13 @@ export default function SignUp() {
                 <button
                     onClick={handleSignUp}
                     disabled={loading}
-                    className="w-full bg-white text-black font-bold py-3 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 mt-6"
+                    className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-full hover:opacity-90 transition-all flex items-center justify-center gap-2 mt-6 shadow-lg hover:shadow-xl hover:-translate-y-1"
                 >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign Up"}
                 </button>
 
-                <p className="text-center text-sm text-gray-500 mt-6">
-                    Already have an account? <Link href="/signin" className="text-purple-400 hover:text-purple-300">Sign In</Link>
+                <p className="text-center text-sm text-muted-foreground mt-8">
+                    Already have an account? <Link href="/signin" className="text-primary font-bold hover:underline">Sign In</Link>
                 </p>
             </div>
         </div>
