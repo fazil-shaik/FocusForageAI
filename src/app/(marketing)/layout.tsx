@@ -17,9 +17,9 @@ export default function MarketingLayout({
                             FocusForge AI
                         </Link>
                         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-                            <Link href="#features" className="hover:text-foreground transition-colors">Features</Link>
-                            <Link href="#how-it-works" className="hover:text-foreground transition-colors">How it Works</Link>
-                            <Link href="#pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+                            <Link href="/#features" className="hover:text-foreground transition-colors">Features</Link>
+                            <Link href="/how-it-works" className="hover:text-foreground transition-colors">How it Works</Link>
+                            <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
                         </nav>
                         <div className="flex items-center gap-4">
                             <ThemeToggle />
