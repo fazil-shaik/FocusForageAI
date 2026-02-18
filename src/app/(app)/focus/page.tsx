@@ -89,7 +89,7 @@ export default function FocusSession() {
     };
 
     return (
-        <div className="h-[calc(100vh-80px)] flex flex-col items-center justify-center relative overflow-hidden rounded-3xl bg-black border border-white/5">
+        <div className="h-[calc(100vh-80px)] flex flex-col items-center justify-center relative overflow-hidden rounded-3xl bg-card border border-border shadow-2xl">
             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5 pointer-events-none"></div>
 
             <AnimatePresence mode="wait">
@@ -101,16 +101,16 @@ export default function FocusSession() {
                         exit={{ opacity: 0, y: -20 }}
                         className="text-center max-w-md p-8"
                     >
-                        <Brain className="w-16 h-16 mx-auto text-purple-500 mb-6" />
-                        <h2 className="text-3xl font-bold mb-2">Mental State Check-in</h2>
-                        <p className="text-gray-400 mb-8">How are you feeling right now? AI will adjust the session intensity.</p>
+                        <Brain className="w-16 h-16 mx-auto text-primary mb-6" />
+                        <h2 className="text-3xl font-bold mb-2 text-foreground">Mental State Check-in</h2>
+                        <p className="text-muted-foreground mb-8">How are you feeling right now? AI will adjust the session intensity.</p>
 
                         <div className="grid grid-cols-2 gap-4 mb-8">
                             {["Tired", "Anxious", "Neutral", "Flow"].map((m) => (
                                 <button
                                     key={m}
                                     onClick={() => handleMoodSelect(m)}
-                                    className={`p-4 rounded-xl border transition-all ${mood === m ? 'bg-purple-500 border-purple-500 text-white' : 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300'}`}
+                                    className={`p-4 rounded-xl border transition-all font-medium ${mood === m ? 'bg-primary border-primary text-primary-foreground shadow-lg' : 'bg-secondary/5 border-border hover:bg-secondary/10 text-muted-foreground hover:text-foreground'}`}
                                 >
                                     {m}
                                 </button>
@@ -119,12 +119,12 @@ export default function FocusSession() {
 
                         {mood && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                <div className="mb-8 p-4 bg-white/5 rounded-xl border border-white/10">
-                                    <p className="text-sm text-gray-400">Recommended Session</p>
-                                    <div className="text-2xl font-bold">{duration} Minutes</div>
-                                    <p className="text-xs text-purple-400 mt-1">{mood === "Flow" ? "Deep Work Mode" : "Refresh Mode"}</p>
+                                <div className="mb-8 p-4 bg-secondary/5 rounded-xl border border-border">
+                                    <p className="text-sm text-muted-foreground font-bold">Recommended Session</p>
+                                    <div className="text-2xl font-bold text-foreground">{duration} Minutes</div>
+                                    <p className="text-xs text-primary mt-1 font-bold">{mood === "Flow" ? "Deep Work Mode" : "Refresh Mode"}</p>
                                 </div>
-                                <button onClick={startSession} className="w-full py-4 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform">
+                                <button onClick={startSession} className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-full hover:scale-105 transition-transform shadow-lg">
                                     Start Session
                                 </button>
                             </motion.div>
@@ -141,26 +141,26 @@ export default function FocusSession() {
                         className="text-center w-full h-full flex flex-col items-center justify-center relative"
                     >
                         {/* Ambient Background */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/10 to-black pointer-events-none"></div>
+                        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-background pointer-events-none"></div>
 
-                        <h2 className="text-gray-500 font-medium tracking-widest uppercase mb-8">Focus Mode Active</h2>
+                        <h2 className="text-muted-foreground font-bold tracking-widest uppercase mb-8">Focus Mode Active</h2>
 
-                        <div className="text-[12rem] font-bold leading-none tracking-tighter tabular-nums bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-600">
+                        <div className="text-[12rem] font-bold leading-none tracking-tighter tabular-nums text-foreground">
                             {formatTime(timeLeft)}
                         </div>
 
                         {distractions > 0 && (
-                            <div className="absolute top-8 right-8 flex items-center gap-2 text-yellow-500 bg-yellow-500/10 px-4 py-2 rounded-full border border-yellow-500/20 animate-pulse">
+                            <div className="absolute top-8 right-8 flex items-center gap-2 text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-500/10 px-4 py-2 rounded-full border border-yellow-200 dark:border-yellow-500/20 animate-pulse">
                                 <AlertTriangle className="w-4 h-4" />
                                 <span className="text-sm font-bold">{distractions} Distractions</span>
                             </div>
                         )}
 
                         <div className="flex items-center gap-6 mt-12 relative z-10">
-                            <button onClick={() => setIsActive(!isActive)} className="p-6 rounded-full bg-white/5 border border-white/10 hover:bg-white/20 transition-all">
+                            <button onClick={() => setIsActive(!isActive)} className="p-6 rounded-full bg-secondary/10 border border-border hover:bg-secondary/20 text-foreground transition-all">
                                 {isActive ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
                             </button>
-                            <button onClick={() => setStep("summary")} className="p-6 rounded-full bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 transition-all">
+                            <button onClick={() => setStep("summary")} className="p-6 rounded-full bg-red-100 border border-red-200 hover:bg-red-200 text-red-600 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400 transition-all">
                                 <X className="w-8 h-8" />
                             </button>
                         </div>
@@ -175,20 +175,20 @@ export default function FocusSession() {
                         className="text-center max-w-md p-8"
                     >
                         <CheckCircle className="w-20 h-20 mx-auto text-green-500 mb-6" />
-                        <h2 className="text-3xl font-bold mb-2">Session Complete!</h2>
-                        <p className="text-gray-400 mb-4">You completed {duration} minutes of deep work.</p>
+                        <h2 className="text-3xl font-bold mb-2 text-foreground">Session Complete!</h2>
+                        <p className="text-muted-foreground mb-4">You completed {duration} minutes of deep work.</p>
 
-                        <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 p-6 rounded-2xl border border-purple-500/20 mb-8">
-                            <p className="text-sm text-purple-300 font-medium mb-1">XP Earned</p>
-                            <div className="text-4xl font-bold text-white">+{xpEarned} XP</div>
-                            {distractions > 0 && <p className="text-xs text-red-400 mt-2">-{distractions * 5} XP penalty for distractions</p>}
+                        <div className="bg-gradient-to-r from-primary/20 to-accent/20 p-6 rounded-2xl border border-primary/20 mb-8">
+                            <p className="text-sm text-primary font-bold mb-1">XP Earned</p>
+                            <div className="text-4xl font-bold text-foreground">+{xpEarned} XP</div>
+                            {distractions > 0 && <p className="text-xs text-red-500 mt-2 font-bold">-{distractions * 5} XP penalty for distractions</p>}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <button onClick={() => setStep("checkin")} className="py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                            <button onClick={() => setStep("checkin")} className="py-3 rounded-xl bg-secondary/10 border border-border hover:bg-secondary/20 text-foreground transition-colors font-medium">
                                 New Session
                             </button>
-                            <Link href="/dashboard" className="py-3 rounded-xl bg-white text-black font-bold hover:bg-gray-200 transition-colors flex items-center justify-center">
+                            <Link href="/dashboard" className="py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-colors flex items-center justify-center shadow-md">
                                 Dashboard
                             </Link>
                         </div>

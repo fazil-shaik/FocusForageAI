@@ -33,38 +33,38 @@ export function SettingsForm({ user }: { user: UserData }) {
 
     return (
         <div className="space-y-8 max-w-4xl">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Settings</h1>
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Settings</h1>
 
             {/* Profile Section */}
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+                className="bg-card border border-border rounded-3xl p-6 shadow-sm"
             >
-                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                    <User className="w-5 h-5 text-purple-500" /> Profile
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-foreground">
+                    <User className="w-5 h-5 text-primary" /> Profile
                 </h2>
                 <form action={handleProfileUpdate} className="grid gap-6 md:grid-cols-2">
                     <div className="col-span-2 md:col-span-1">
-                        <label className="block text-sm text-gray-400 mb-2">Display Name</label>
+                        <label className="block text-sm font-bold text-muted-foreground mb-2">Display Name</label>
                         <input
                             name="name"
                             defaultValue={user.name}
-                            className="w-full bg-black/50 border border-white/10 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                            className="w-full bg-input border border-transparent rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none transition-all text-foreground placeholder:text-muted-foreground"
                         />
                     </div>
                     <div className="col-span-2 md:col-span-1">
-                        <label className="block text-sm text-gray-400 mb-2">Email</label>
+                        <label className="block text-sm font-bold text-muted-foreground mb-2">Email</label>
                         <input
                             disabled
                             value={user.email}
-                            className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-gray-500 cursor-not-allowed"
+                            className="w-full bg-input border border-transparent rounded-xl p-3 text-muted-foreground cursor-not-allowed"
                         />
                     </div>
                     <div className="col-span-2 flex justify-end">
                         <button
                             disabled={isLoading}
-                            className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                            className="px-6 py-2 bg-primary hover:opacity-90 text-primary-foreground rounded-full font-bold transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:-translate-y-0.5"
                         >
                             {isLoading ? "Saving..." : "Save Changes"}
                         </button>
@@ -77,32 +77,32 @@ export function SettingsForm({ user }: { user: UserData }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+                className="bg-card border border-border rounded-3xl p-6 shadow-sm"
             >
-                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-foreground">
                     <Monitor className="w-5 h-5 text-blue-500" /> Appearance
                 </h2>
                 <div className="grid grid-cols-3 gap-4">
                     <button
                         onClick={() => setTheme("light")}
-                        className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${theme === 'light' ? 'bg-purple-500/10 border-purple-500' : 'bg-black/20 border-white/5 hover:bg-white/5'}`}
+                        className={`p-4 rounded-2xl border flex flex-col items-center gap-3 transition-all ${theme === 'light' ? 'bg-primary/10 border-primary text-primary' : 'bg-input border-transparent hover:bg-secondary/10 text-muted-foreground hover:text-foreground'}`}
                     >
                         <Sun className="w-6 h-6" />
-                        <span className="text-sm">Light</span>
+                        <span className="text-sm font-medium">Light</span>
                     </button>
                     <button
                         onClick={() => setTheme("dark")}
-                        className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500' : 'bg-black/20 border-white/5 hover:bg-white/5'}`}
+                        className={`p-4 rounded-2xl border flex flex-col items-center gap-3 transition-all ${theme === 'dark' ? 'bg-primary/10 border-primary text-primary' : 'bg-input border-transparent hover:bg-secondary/10 text-muted-foreground hover:text-foreground'}`}
                     >
                         <Moon className="w-6 h-6" />
-                        <span className="text-sm">Dark</span>
+                        <span className="text-sm font-medium">Dark</span>
                     </button>
                     <button
                         onClick={() => setTheme("system")}
-                        className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${theme === 'system' ? 'bg-purple-500/10 border-purple-500' : 'bg-black/20 border-white/5 hover:bg-white/5'}`}
+                        className={`p-4 rounded-2xl border flex flex-col items-center gap-3 transition-all ${theme === 'system' ? 'bg-primary/10 border-primary text-primary' : 'bg-input border-transparent hover:bg-secondary/10 text-muted-foreground hover:text-foreground'}`}
                     >
                         <Monitor className="w-6 h-6" />
-                        <span className="text-sm">System</span>
+                        <span className="text-sm font-medium">System</span>
                     </button>
                 </div>
             </motion.div>
@@ -112,19 +112,19 @@ export function SettingsForm({ user }: { user: UserData }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6 backdrop-blur-sm"
+                className="bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/20 rounded-3xl p-6"
             >
-                <h2 className="text-xl font-semibold mb-4 text-red-500 flex items-center gap-2">
+                <h2 className="text-xl font-bold mb-4 text-red-600 dark:text-red-400 flex items-center gap-2">
                     <Shield className="w-5 h-5" /> Danger Zone
                 </h2>
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="font-medium">Delete Account</p>
-                        <p className="text-sm text-gray-500">Permanently delete your account and all data.</p>
+                        <p className="font-bold text-foreground">Delete Account</p>
+                        <p className="text-sm text-muted-foreground">Permanently delete your account and all data.</p>
                     </div>
                     <button
                         onClick={handleDelete}
-                        className="px-4 py-2 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-medium text-sm"
+                        className="px-4 py-2 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors font-bold text-sm"
                     >
                         Delete Account
                     </button>

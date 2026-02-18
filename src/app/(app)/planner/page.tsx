@@ -32,38 +32,38 @@ export default function PlannerPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             <header>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                <h1 className="text-3xl font-bold text-foreground">
                     AI Deep Work Architect
                 </h1>
-                <p className="text-gray-400 mt-2">
+                <p className="text-muted-foreground mt-2">
                     Input your tasks and let AI build your perfect flow state schedule.
                 </p>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Input Form */}
-                <div className="glass-card p-6 rounded-2xl space-y-6">
+                <div className="bg-card p-6 rounded-3xl space-y-6 border border-border shadow-sm">
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
-                            <ListTodo className="w-4 h-4 text-purple-400" /> Tasks (One per line)
+                        <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
+                            <ListTodo className="w-4 h-4 text-primary" /> Tasks (One per line)
                         </label>
                         <textarea
                             value={tasks}
                             onChange={(e) => setTasks(e.target.value)}
-                            className="w-full h-40 bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:ring-2 focus:ring-purple-500 transition-all resize-none placeholder:text-gray-600"
+                            className="w-full h-40 bg-input border border-transparent rounded-2xl p-4 text-foreground focus:ring-2 focus:ring-primary transition-all resize-none placeholder:text-muted-foreground outline-none"
                             placeholder="- Finish API documentation&#10;- Review PR #102&#10;- Write blog post intro"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-blue-400" /> Available Time
+                            <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-blue-500" /> Available Time
                             </label>
                             <select
                                 value={availableTime}
                                 onChange={(e) => setAvailableTime(e.target.value)}
-                                className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full bg-input border border-transparent rounded-xl p-3 text-foreground focus:ring-2 focus:ring-primary outline-none"
                             >
                                 <option>1 hour</option>
                                 <option>2 hours</option>
@@ -73,13 +73,13 @@ export default function PlannerPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
-                                <Battery className="w-4 h-4 text-green-400" /> Energy Level
+                            <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
+                                <Battery className="w-4 h-4 text-green-500" /> Energy Level
                             </label>
                             <select
                                 value={energyLevel}
                                 onChange={(e) => setEnergyLevel(e.target.value)}
-                                className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full bg-input border border-transparent rounded-xl p-3 text-foreground focus:ring-2 focus:ring-primary outline-none"
                             >
                                 <option>High</option>
                                 <option>Medium</option>
@@ -91,7 +91,7 @@ export default function PlannerPage() {
                     <button
                         onClick={handleGenerate}
                         disabled={loading || !tasks}
-                        className="w-full py-4 rounded-xl bg-white text-black font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
                     >
                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Sparkles className="w-5 h-5" /> Generate Plan</>}
                     </button>
@@ -101,33 +101,33 @@ export default function PlannerPage() {
                 <div className="space-y-4">
                     {plan ? (
                         <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
-                            <div className="glass-card p-6 rounded-2xl border-l-4 border-l-purple-500 mb-6">
-                                <h3 className="font-bold text-lg mb-2">AI Summary</h3>
-                                <p className="text-gray-400 italic">"{plan.summary}"</p>
+                            <div className="bg-card p-6 rounded-3xl border-l-4 border-l-primary border border-border mb-6 shadow-sm">
+                                <h3 className="font-bold text-lg mb-2 text-foreground">AI Summary</h3>
+                                <p className="text-muted-foreground italic">"{plan.summary}"</p>
                             </div>
 
                             <div className="space-y-3">
                                 {plan.schedule.map((item: any, idx: number) => (
-                                    <div key={idx} className="glass-card p-4 rounded-xl flex items-start gap-4 hover:bg-white/5 transition-colors group">
-                                        <div className="w-16 text-sm font-mono text-gray-500 pt-1 border-r border-white/10 pr-2">{item.time}</div>
+                                    <div key={idx} className="bg-card p-4 rounded-2xl flex items-start gap-4 hover:bg-secondary/5 transition-colors group border border-border">
+                                        <div className="w-16 text-sm font-mono text-muted-foreground pt-1 border-r border-border pr-2">{item.time}</div>
                                         <div>
-                                            <h4 className="font-bold text-white group-hover:text-purple-400 transition-colors">{item.activity}</h4>
+                                            <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{item.activity}</h4>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className={`text-xs px-2 py-0.5 rounded-full ${item.type === 'Deep Work' ? 'bg-purple-500/20 text-purple-300' :
-                                                        item.type === 'Break' ? 'bg-green-500/20 text-green-300' :
-                                                            'bg-blue-500/20 text-blue-300'
+                                                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${item.type === 'Deep Work' ? 'bg-primary/10 text-primary' :
+                                                    item.type === 'Break' ? 'bg-green-500/10 text-green-600' :
+                                                        'bg-blue-500/10 text-blue-600'
                                                     }`}>
                                                     {item.type}
                                                 </span>
                                             </div>
-                                            {item.notes && <p className="text-xs text-gray-500 mt-2">{item.notes}</p>}
+                                            {item.notes && <p className="text-xs text-muted-foreground mt-2">{item.notes}</p>}
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-600 glass-card rounded-2xl p-10 border-dashed border-2 border-white/10">
+                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground bg-card/50 rounded-3xl p-10 border-dashed border-2 border-border">
                             <Sparkles className="w-12 h-12 mb-4 opacity-20" />
                             <p>Your optimized schedule will appear here.</p>
                         </div>
