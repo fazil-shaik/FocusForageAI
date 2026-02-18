@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Star, Heart, Zap, Award, Sparkles, Check, Play } from "lucide-react";
 import Link from "next/link";
 import { BackgroundBeams } from "@/components/ui/background-beams";
+import { HeroDemo } from "@/components/landing/HeroDemo";
 
 const features = [
   {
@@ -66,31 +67,7 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Hero Image / Visualization */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8, type: "spring" }}
-            className="w-full max-w-5xl mt-12 relative"
-          >
-            <div className="bg-card rounded-3xl shadow-2xl overflow-hidden border-8 border-card">
-              <div className="bg-muted aspect-video flex items-center justify-center relative overflow-hidden group">
-                {/* Abstract representational UI */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5"></div>
-                <div className="w-3/4 h-3/4 bg-card rounded-2xl shadow-lg relative z-10 flex flex-col p-6 items-center justify-center border border-border">
-                  <div className="w-16 h-16 bg-primary rounded-full mb-4 animate-bounce flex items-center justify-center">
-                    <Sparkles className="w-8 h-8 text-primary-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground">You're in the Zone!</h3>
-                  <p className="text-muted-foreground">25 minutes of deep work remaining...</p>
-                </div>
-
-                {/* Floating blobs */}
-                <div className="absolute top-10 right-10 w-24 h-24 bg-secondary/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-                <div className="absolute top-10 left-10 w-24 h-24 bg-primary/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-                <div className="absolute -bottom-8 left-20 w-24 h-24 bg-accent/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-              </div>
-            </div>
-          </motion.div>
+          <HeroDemo />
         </div>
       </section>
 
