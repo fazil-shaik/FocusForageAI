@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import { User, Bell, Shield, Smartphone, Monitor, Moon, Sun } from "lucide-react";
-import { updateProfile, deleteAccount } from "./actions";
+import { updateProfile, deleteAccount } from "../app/(app)/settings/actions";
 
 type UserData = {
     name: string;

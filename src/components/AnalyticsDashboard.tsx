@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Braille, Clock, Zap, Activity, Brain } from "lucide-react";
+import { Grid, Clock, Zap, Activity, Brain } from "lucide-react";
+
 
 type AnalyticsData = {
     dailyStats: any[];

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, MoreVertical, Trash, CheckCircle, Clock, AlertCircle } from "lucide-react";
-import { createTask, updateTaskStatus, deleteTask } from "./actions";
+import { createTask, updateTaskStatus, deleteTask } from "@/app/(app)/tasks/actions";
+
 
 type Task = {
     id: string;
