@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { focusSessions, dailyStats } from "@/db/schema";
+import { focusSessions, dailyStats, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -23,6 +23,24 @@ export async function saveFocusSession(data: {
     const taskName = data.taskName || "General Focus";
     const duration = data.duration;
     const distractions = data.distractionCount || 0;
+
+    // Check Plan Limits
+    const user = await db.query.users.findFirst({
+        where: eq(users.id, session.user.id),
+    });
+
+    if (user?.plan === "free") {
+        const todaySessions = await db.query.dailyStats.findFirst({
+            where: and(
+                eq(dailyStats.userId, session.user.id),
+                eq(dailyStats.date, today)
+            ),
+        });
+
+        if (todaySessions && (todaySessions.sessionsCompleted || 0) >= 3) {
+            throw new Error("Free plan limit reached. Upgrade to Pro for unlimited sessions.");
+        }
+    }
 
     // 1. Save Session
     await db.insert(focusSessions).values({

@@ -10,9 +10,14 @@ import { eq } from "drizzle-orm";
 
 // Initialize Cashfree
 // Initialize Cashfree
-// (Cashfree as any).XClientId = process.env.CASHFREE_APP_ID;
-// (Cashfree as any).XClientSecret = process.env.CASHFREE_SECRET_KEY;
-// (Cashfree as any).XEnvironment = Cashfree.Environment?.SANDBOX; // Switch to PRODUCTION for live
+// Initialize Cashfree
+try {
+    (Cashfree as any).XClientId = process.env.CASHFREE_APP_ID;
+    (Cashfree as any).XClientSecret = process.env.CASHFREE_SECRET_KEY;
+    (Cashfree as any).XEnvironment = 1; // SANDBOX = 1, PRODUCTION = 2
+} catch (e) {
+    console.warn("Cashfree initialization failed (likely during build):", e);
+}
 
 export async function POST(req: Request) {
     try {
@@ -49,7 +54,8 @@ export async function POST(req: Request) {
         };
 
         // 3. Call Cashfree API
-        const response = await Cashfree.PGCreateOrder("2023-08-01", request);
+        const cashfree = new Cashfree();
+        const response = await cashfree.PGCreateOrder("2023-08-01", request);
 
         // Log response for debugging (remove in production)
         // console.log("Cashfree Order Response:", response.data);

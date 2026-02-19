@@ -13,10 +13,20 @@ export default function PricingPage() {
     const handleCheckout = async () => {
         setLoading(true);
         try {
+            // 0. Check for auth (Frontend check, backend also checks)
+            // But we need to know if user is logged in to redirect.
+            // Ideally we check session on mount or simple fetch.
+            // For now, let's rely on the API 401 response to redirect.
+
             // 1. Create Order
             const response = await fetch("/api/payment/create-order", {
                 method: "POST",
             });
+
+            if (response.status === 401) {
+                router.push("/signin?redirect=/pricing"); // Add redirect param if desired
+                return;
+            }
 
             const data = await response.json();
 

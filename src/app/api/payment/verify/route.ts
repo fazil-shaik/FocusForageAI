@@ -8,9 +8,13 @@ import { eq } from "drizzle-orm";
 
 // Initialize Cashfree (Should be in a shared config file ideally)
 // Initialize Cashfree (Should be in a shared config file ideally)
-// Cashfree.XClientId = process.env.CASHFREE_APP_ID;
-// Cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY;
-// Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
+try {
+    (Cashfree as any).XClientId = process.env.CASHFREE_APP_ID;
+    (Cashfree as any).XClientSecret = process.env.CASHFREE_SECRET_KEY;
+    (Cashfree as any).XEnvironment = 1; // SANDBOX = 1
+} catch (e) {
+    console.warn("Cashfree initialization failed:", e);
+}
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -22,7 +26,8 @@ export async function GET(req: Request) {
 
     try {
         // 1. Fetch Order Status from Cashfree
-        const response = await Cashfree.PGFetchOrder("2023-08-01", orderId);
+        const cashfree = new Cashfree();
+        const response = await cashfree.PGFetchOrder("2023-08-01", orderId);
         const order = response.data;
 
         // 2. Check Payment Status
