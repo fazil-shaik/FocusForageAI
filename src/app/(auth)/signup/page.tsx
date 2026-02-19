@@ -12,6 +12,11 @@ export default function SignUp() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { data: session } = authClient.useSession();
+
+    if (session) {
+        router.push("/dashboard");
+    }
 
     const handleSignUp = async () => {
         setLoading(true);

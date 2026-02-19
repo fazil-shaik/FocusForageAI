@@ -11,6 +11,11 @@ export default function SignIn() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { data: session } = authClient.useSession();
+
+    if (session) {
+        router.push("/dashboard");
+    }
 
     const handleSignIn = async () => {
         setLoading(true);
