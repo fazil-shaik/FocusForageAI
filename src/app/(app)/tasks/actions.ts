@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { redis } from "@/lib/redis";
 
 export async function getTasks() {
     const session = await auth.api.getSession({
@@ -36,6 +37,9 @@ export async function createTask(formData: FormData) {
         status: "todo",
     });
 
+    const cacheKey = `dashboard:recentTasks:${session.user.id}`;
+    await redis.del(cacheKey);
+
     revalidatePath("/tasks");
 }
 
@@ -49,6 +53,9 @@ export async function updateTaskStatus(taskId: string, status: string) {
         .set({ status })
         .where(eq(tasks.id, taskId)); // Add userId check for security in real app
 
+    const cacheKey = `dashboard:recentTasks:${session.user.id}`;
+    await redis.del(cacheKey);
+
     revalidatePath("/tasks");
 }
 
@@ -60,6 +67,9 @@ export async function deleteTask(taskId: string) {
 
     await db.delete(tasks)
         .where(eq(tasks.id, taskId));
+
+    const cacheKey = `dashboard:recentTasks:${session.user.id}`;
+    await redis.del(cacheKey);
 
     revalidatePath("/tasks");
 }

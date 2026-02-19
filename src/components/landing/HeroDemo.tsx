@@ -405,7 +405,7 @@ export function HeroDemo() {
 function SidebarIcon({ active, hover, icon }: { active: boolean, hover?: boolean, icon: React.ReactNode }) {
     return (
         <div className={`p-3 rounded-xl transition-all duration-300 ${active ? 'bg-primary text-primary-foreground shadow-lg scale-105' : 'text-muted-foreground hover:bg-muted'}`}>
-            {React.cloneElement(icon as React.ReactElement, { size: 20 })}
+            {React.cloneElement(icon as React.ReactElement<any>, { size: 20 })}
         </div>
     );
 }

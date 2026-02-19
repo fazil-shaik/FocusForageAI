@@ -8,17 +8,33 @@ import { BrainCircuit, Target, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { FocusTimer } from "@/components/FocusTimer";
 
+import { redis } from "@/lib/redis";
+
+type Task = typeof tasks.$inferSelect;
+
 async function getDashboardData() {
     const session = await auth.api.getSession({
         headers: await headers(),
     });
     if (!session) return null;
 
+    const cacheKey = `dashboard:recentTasks:${session.user.id}`;
+    const cachedTasks = await redis.get(cacheKey);
+
+    if (cachedTasks) {
+        console.log("CACHE HIT");
+        const tasks: Task[] = JSON.parse(cachedTasks);
+        return { session, recentTasks: tasks };
+    }
+
+    console.log("CACHE MISS");
     const recentTasks = await db.query.tasks.findMany({
         where: eq(tasks.userId, session.user.id),
         orderBy: [desc(tasks.createdAt)],
         limit: 3,
     });
+
+    await redis.set(cacheKey, JSON.stringify(recentTasks), "EX", 300); // Cache for 5 minutes
 
     return { session, recentTasks };
 }
