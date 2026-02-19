@@ -1,10 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, MoreVertical, Trash, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Plus, MoreVertical, Trash, CheckCircle, Clock, AlertCircle, PlayCircle, GripVertical } from "lucide-react";
 import { createTask, updateTaskStatus, deleteTask } from "@/app/(app)/tasks/actions";
-
+import {
+    DndContext,
+    DragOverlay,
+    closestCorners,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragStartEvent,
+    DragOverEvent,
+    DragEndEvent,
+    defaultDropAnimationSideEffects,
+    DropAnimation,
+} from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type Task = {
     id: string;
@@ -15,34 +36,35 @@ type Task = {
     createdAt: Date | null;
 };
 
+const COLUMNS = [
+    { id: "todo", title: "To Do", color: "bg-red-500/10 text-red-500 border-red-500/20" },
+    { id: "in_progress", title: "In Progress", color: "bg-primary/10 text-primary border-primary/20" },
+    { id: "done", title: "Done", color: "bg-green-500/10 text-green-500 border-green-500/20" },
+];
+
 export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     const [tasks, setTasks] = useState(initialTasks);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [activeId, setActiveId] = useState<string | null>(null);
 
-    // Optimistic updates could be added here, but for now we rely on revalidation/props
-    // or we can just manage local state and let the server catch up.
-    // For "dynamic" feel, let's use the props passed down, but in a real app better to use useOptimistic.
-
-    const columns = [
-        { id: "todo", title: "To Do", color: "bg-red-500/10 text-red-500 border-red-500/20" },
-        { id: "in_progress", title: "In Progress", color: "bg-primary/10 text-primary border-primary/20" },
-        { id: "done", title: "Done", color: "bg-green-500/10 text-green-500 border-green-500/20" },
-    ];
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5, // Prevent accidental drags
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const handleCreate = async (formData: FormData) => {
         setIsCreateOpen(false);
         await createTask(formData);
-        // In a real app we'd refresh or update optimistic state.
-        // Since we are using a client component initialized with server data,
-        // we might need to router.refresh() to see changes if not using optimistic.
-        // But for now let's hope revalidatePath works and nextjs updates the RSC payload.
-        // Actually, we need to refresh the router to see the new data if passed as props.
-        window.location.reload(); // Simple brute force for now, ideally use router.refresh()
+        window.location.reload();
     };
 
-    // Better approach: use router.refresh()
     const handleStatusChange = async (taskId: string, newStatus: string) => {
-        // Optimistic update
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
         await updateTaskStatus(taskId, newStatus);
     };
@@ -50,6 +72,80 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     const handleDelete = async (taskId: string) => {
         setTasks(prev => prev.filter(t => t.id !== taskId));
         await deleteTask(taskId);
+    };
+
+    // --- Drag and Drop Logic ---
+
+    const findContainer = (id: string) => {
+        if (COLUMNS.find(c => c.id === id)) return id;
+        const task = tasks.find(t => t.id === id);
+        return task?.status || "todo";
+    };
+
+    const handleDragStart = (event: DragStartEvent) => {
+        setActiveId(event.active.id as string);
+    };
+
+    const handleDragOver = (event: DragOverEvent) => {
+        const { active, over } = event;
+        if (!over) return;
+
+        const activeId = active.id;
+        const overId = over.id;
+
+        const activeContainer = findContainer(activeId as string);
+        const overContainer = findContainer(overId as string);
+
+        if (!activeContainer || !overContainer || activeContainer === overContainer) {
+            return;
+        }
+
+        // Move task to the new container visually during drag
+        setTasks((prev) => {
+            const activeItems = prev.filter(t => (t.status || "todo") === activeContainer);
+            const overItems = prev.filter(t => (t.status || "todo") === overContainer);
+
+            return prev.map(t => {
+                if (t.id === activeId) {
+                    return { ...t, status: overContainer };
+                }
+                return t;
+            });
+        });
+    };
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+        const activeId = active.id as string;
+        const overId = over ? (over.id as string) : null;
+
+        setActiveId(null);
+
+        if (!overId) return;
+
+        const activeContainer = findContainer(activeId);
+        const overContainer = findContainer(overId);
+
+        if (activeContainer !== overContainer) {
+            // Moved to a different column
+            setTasks((prev) => prev.map(t => t.id === activeId ? { ...t, status: overContainer } : t));
+            await updateTaskStatus(activeId, overContainer);
+        } else {
+            // Reordered within same column (not persisted yet in DB as we don't have order field)
+            // But we can reorder locally for UI consistency if we used arrayMove
+            // For now, since we filter tasks by status, reordering only happens visually if we change the array order.
+            // A truly robust implementation needs 'order' field in DB.
+        }
+    };
+
+    const dropAnimation: DropAnimation = {
+        sideEffects: defaultDropAnimationSideEffects({
+            styles: {
+                active: {
+                    opacity: '0.5',
+                },
+            },
+        }),
     };
 
     return (
@@ -64,38 +160,55 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full overflow-x-auto pb-10">
-                {columns.map(col => (
-                    <div key={col.id} className="flex flex-col h-full min-h-[500px] bg-card/50 rounded-3xl p-4 border border-border backdrop-blur-sm">
-                        <div className={`flex items-center justify-between p-3 rounded-2xl mb-4 border ${col.color}`}>
-                            <span className="font-semibold">{col.title}</span>
-                            <span className="text-xs font-bold px-2 py-1 bg-background/50 rounded-full">
-                                {tasks.filter(t => (t.status || "todo") === col.id).length}
-                            </span>
-                        </div>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCorners}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDragEnd={handleDragEnd}
+            >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full overflow-x-auto pb-10">
+                    {COLUMNS.map(col => (
+                        <div key={col.id} className="flex flex-col h-full min-h-[500px] bg-card/50 rounded-3xl p-4 border border-border backdrop-blur-sm">
+                            <div className={`flex items-center justify-between p-3 rounded-2xl mb-4 border ${col.color}`}>
+                                <span className="font-semibold">{col.title}</span>
+                                <span className="text-xs font-bold px-2 py-1 bg-background/50 rounded-full">
+                                    {tasks.filter(t => (t.status || "todo") === col.id).length}
+                                </span>
+                            </div>
 
-                        <div className="flex-1 space-y-3 overflow-y-auto">
-                            <AnimatePresence>
-                                {tasks.filter(t => (t.status || "todo") === col.id).map(task => (
-                                    <TaskCard
-                                        key={task.id}
-                                        task={task}
-                                        onStatusChange={handleStatusChange}
-                                        onDelete={handleDelete}
-                                    />
-                                ))}
-                            </AnimatePresence>
-                            {tasks.filter(t => (t.status || "todo") === col.id).length === 0 && (
-                                <div className="text-center text-muted-foreground py-10 text-sm italic">
-                                    No tasks here
+                            <SortableContext
+                                id={col.id}
+                                items={tasks.filter(t => (t.status || "todo") === col.id).map(t => t.id)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <div className="flex-1 space-y-3 overflow-y-auto min-h-[100px]">
+                                    {tasks.filter(t => (t.status || "todo") === col.id).map(task => (
+                                        <SortableTaskCard
+                                            key={task.id}
+                                            task={task}
+                                            onDelete={handleDelete}
+                                        />
+                                    ))}
+                                    {tasks.filter(t => (t.status || "todo") === col.id).length === 0 && (
+                                        <div className="text-center text-muted-foreground py-10 text-sm italic">
+                                            Drop here
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </SortableContext>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
 
-            {/* Create Task Modal */}
+                <DragOverlay dropAnimation={dropAnimation}>
+                    {activeId ? (
+                        <TaskCardOverlay task={tasks.find(t => t.id === activeId)!} />
+                    ) : null}
+                </DragOverlay>
+            </DndContext>
+
+            {/* Create Task Modal - Same as before */}
             {isCreateOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <motion.div
@@ -133,7 +246,38 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     );
 }
 
-function TaskCard({ task, onStatusChange, onDelete }: { task: Task, onStatusChange: (id: string, status: string) => void, onDelete: (id: string) => void }) {
+function SortableTaskCard({ task, onDelete }: { task: Task, onDelete: (id: string) => void }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: task.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
+            <TaskCardContent task={task} onDelete={onDelete} />
+        </div>
+    );
+}
+
+function TaskCardOverlay({ task }: { task: Task }) {
+    return (
+        <div className="opacity-90 rotate-2 scale-105 shadow-2xl cursor-grabbing">
+            <TaskCardContent task={task} onDelete={() => { }} isOverlay />
+        </div>
+    );
+}
+
+function TaskCardContent({ task, onDelete, isOverlay }: { task: Task, onDelete: (id: string) => void, isOverlay?: boolean }) {
     const priorityColors = {
         low: "text-blue-500",
         medium: "text-yellow-500",
@@ -141,46 +285,33 @@ function TaskCard({ task, onStatusChange, onDelete }: { task: Task, onStatusChan
     };
 
     return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-card border border-border p-4 rounded-2xl group hover:border-primary/30 transition-all hover:shadow-lg"
-        >
+        <div className={`bg-card border border-border p-4 rounded-2xl group hover:border-primary/30 transition-all ${isOverlay ? 'shadow-2xl ring-2 ring-primary/20' : 'hover:shadow-lg'}`}>
             <div className="flex justify-between items-start mb-2">
-                <h3 className="font-bold text-foreground">{task.title}</h3>
-                <div className="relative">
-                    <button onClick={() => onDelete(task.id)} className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Trash className="w-4 h-4" />
-                    </button>
+                <h3 className="font-bold text-foreground text-sm">{task.title}</h3>
+                <div className="relative flex gap-2">
+                    {!isOverlay && (
+                        <button onClick={(e) => { e.stopPropagation(); onDelete(task.id); }} className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Trash className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
             </div>
 
             {task.description && (
-                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
+                <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
             )}
 
             <div className="flex items-center justify-between mt-2">
-                <div className={`text-xs font-medium capitalize flex items-center gap-1 ${priorityColors[task.priority as keyof typeof priorityColors] || "text-muted-foreground"}`}>
+                <div className={`text-[10px] font-bold uppercase flex items-center gap-1 ${priorityColors[task.priority as keyof typeof priorityColors] || "text-muted-foreground"}`}>
                     <AlertCircle className="w-3 h-3" />
-                    {task.priority}
+                    {task.priority || 'Medium'}
                 </div>
-
-                <div className="flex gap-1">
-                    {/* Quick Actions moved to hover or a menu ideally */}
-                    {task.status !== 'done' && (
-                        <button onClick={() => onStatusChange(task.id, 'done')} title="Mark Done" className="p-1 hover:bg-green-500/20 rounded text-muted-foreground hover:text-green-500">
-                            <CheckCircle className="w-4 h-4" />
-                        </button>
-                    )}
-                    {task.status === 'todo' && (
-                        <button onClick={() => onStatusChange(task.id, 'in_progress')} title="Start" className="p-1 hover:bg-primary/20 rounded text-muted-foreground hover:text-primary">
-                            <Clock className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
+                {!isOverlay && (
+                    <div className="text-muted-foreground/30 group-hover:text-muted-foreground transition-colors">
+                        <GripVertical className="w-4 h-4" />
+                    </div>
+                )}
             </div>
-        </motion.div>
+        </div>
     );
 }

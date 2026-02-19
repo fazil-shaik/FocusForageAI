@@ -12,6 +12,15 @@ import { redis } from "@/lib/redis";
 
 type Task = typeof tasks.$inferSelect;
 
+interface SessionUser {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+    plan?: string;
+}
+
+
 async function getDashboardData() {
     const session = await auth.api.getSession({
         headers: await headers(),
@@ -76,7 +85,7 @@ export default async function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* Focus Timer Card */}
-                <FocusTimer />
+                <FocusTimer userPlan={(session.user as any).plan || "free"} />
 
                 {/* Right Column: Stats & Tasks */}
                 <div className="space-y-6">
@@ -86,9 +95,20 @@ export default async function Dashboard() {
                         <h3 className="text-sm font-bold text-muted-foreground mb-2 flex items-center gap-2">
                             <BrainCircuit className="w-4 h-4 text-primary" /> AI Insight
                         </h3>
-                        <p className="text-sm leading-relaxed text-foreground">
-                            You tend to lose focus around <span className="text-primary font-bold">3:00 PM</span>. I've scheduled a high-dopamine break for 2:50 PM.
-                        </p>
+                        {session.user.plan === "pro" ? (
+                            <p className="text-sm leading-relaxed text-foreground">
+                                You tend to lose focus around <span className="text-primary font-bold">3:00 PM</span>. I've scheduled a high-dopamine break for 2:50 PM.
+                            </p>
+                        ) : (
+                            <div>
+                                <p className="text-sm leading-relaxed text-foreground mb-3 blur-sm select-none">
+                                    Your peak focus time is at 10:00 AM. We recommend scheduling deep work then.
+                                </p>
+                                <Link href="/pricing" className="block text-center text-xs font-bold text-primary hover:underline">
+                                    Upgrade to Pro to unlock AI insights
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
                     {/* Task List Preview */}

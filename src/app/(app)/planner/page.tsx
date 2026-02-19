@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Sparkles, Clock, Battery, ListTodo } from "lucide-react";
+import { savePlanToTasks } from "./actions";
 
 export default function PlannerPage() {
     const [tasks, setTasks] = useState("");
@@ -100,13 +101,15 @@ export default function PlannerPage() {
                 {/* Results View */}
                 <div className="space-y-4">
                     {plan ? (
+
+
                         <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
                             <div className="bg-card p-6 rounded-3xl border-l-4 border-l-primary border border-border mb-6 shadow-sm">
                                 <h3 className="font-bold text-lg mb-2 text-foreground">AI Summary</h3>
                                 <p className="text-muted-foreground italic">"{plan.summary}"</p>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-3 mb-8">
                                 {plan.schedule.map((item: any, idx: number) => (
                                     <div key={idx} className="bg-card p-4 rounded-2xl flex items-start gap-4 hover:bg-secondary/5 transition-colors group border border-border">
                                         <div className="w-16 text-sm font-mono text-muted-foreground pt-1 border-r border-border pr-2">{item.time}</div>
@@ -125,6 +128,13 @@ export default function PlannerPage() {
                                     </div>
                                 ))}
                             </div>
+
+                            <button
+                                onClick={() => savePlanToTasks(plan)}
+                                className="w-full py-4 rounded-full bg-secondary text-secondary-foreground font-bold hover:bg-secondary/80 transition-all flex items-center justify-center gap-2 border border-border shadow-sm hover:shadow-md"
+                            >
+                                <ListTodo className="w-5 h-5" /> Save Execution Plan to Tasks
+                            </button>
                         </div>
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-muted-foreground bg-card/50 rounded-3xl p-10 border-dashed border-2 border-border">

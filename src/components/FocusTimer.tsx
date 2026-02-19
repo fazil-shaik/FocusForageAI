@@ -7,7 +7,8 @@ import Link from "next/link";
 import { saveFocusSession } from "@/app/(app)/focus/actions";
 
 
-export function FocusTimer() {
+export function FocusTimer({ userPlan = "free" }: { userPlan?: string }) {
+    const isPro = userPlan === "pro";
     const [isPlaying, setIsPlaying] = useState(false);
     const [timeLeft, setTimeLeft] = useState(25 * 60);
 
@@ -46,8 +47,17 @@ export function FocusTimer() {
 
     return (
         <div className="lg:col-span-2 bg-card/50 rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[400px] border border-border backdrop-blur-md shadow-sm">
-            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-secondary/10 border border-border text-xs text-muted-foreground flex items-center gap-2">
-                <BrainCircuit className="w-3 h-3 text-primary" /> AI Adaptive Mode
+            {/* Adaptive Mode Badge */}
+            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full border text-xs flex items-center gap-2 ${isPro ? 'bg-secondary/10 border-border text-muted-foreground' : 'bg-muted border-transparent text-muted-foreground opacity-70'}`}>
+                {isPro ? (
+                    <>
+                        <BrainCircuit className="w-3 h-3 text-primary" /> AI Adaptive Mode
+                    </>
+                ) : (
+                    <>
+                        <BrainCircuit className="w-3 h-3" /> Adaptive Mode (Pro)
+                    </>
+                )}
             </div>
 
             <motion.div
@@ -74,7 +84,13 @@ export function FocusTimer() {
                 >
                     {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
                 </button>
-                <button className="p-4 rounded-full bg-secondary/10 border border-border hover:bg-secondary/20 text-muted-foreground hover:text-foreground transition-colors">
+
+                {/* Soundscapes Toggle */}
+                <button
+                    disabled={!isPro}
+                    className={`p-4 rounded-full border transition-colors ${isPro ? 'bg-secondary/10 border-border hover:bg-secondary/20 text-muted-foreground hover:text-foreground' : 'bg-muted/50 border-transparent text-muted-foreground/50 cursor-not-allowed'}`}
+                    title={isPro ? "Toggle Soundscapes" : "Soundscapes available in Pro"}
+                >
                     <Zap className="w-6 h-6" />
                 </button>
             </div>
