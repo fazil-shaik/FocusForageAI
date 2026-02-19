@@ -17,6 +17,7 @@ import {
     DragEndEvent,
     defaultDropAnimationSideEffects,
     DropAnimation,
+    useDroppable,
 } from "@dnd-kit/core";
 import {
     arrayMove,
@@ -43,7 +44,7 @@ const COLUMNS = [
 ];
 
 export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
-    const [tasks, setTasks] = useState(initialTasks);
+    const [tasks, setTasks] = useState(initialTasks.filter(t => t.status !== 'done'));
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -65,7 +66,11 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     };
 
     const handleStatusChange = async (taskId: string, newStatus: string) => {
-        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+        if (newStatus === 'done') {
+            setTasks(prev => prev.filter(t => t.id !== taskId));
+        } else {
+            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+        }
         await updateTaskStatus(taskId, newStatus);
     };
 
@@ -128,7 +133,11 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
 
         if (activeContainer !== overContainer) {
             // Moved to a different column
-            setTasks((prev) => prev.map(t => t.id === activeId ? { ...t, status: overContainer } : t));
+            if (overContainer === 'done') {
+                setTasks(prev => prev.filter(t => t.id !== activeId));
+            } else {
+                setTasks((prev) => prev.map(t => t.id === activeId ? { ...t, status: overContainer } : t));
+            }
             await updateTaskStatus(activeId, overContainer);
         } else {
             // Reordered within same column (not persisted yet in DB as we don't have order field)
@@ -160,6 +169,8 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
                 </button>
             </div>
 
+// ... imports ...
+
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCorners}
@@ -169,35 +180,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
             >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full overflow-x-auto pb-10">
                     {COLUMNS.map(col => (
-                        <div key={col.id} className="flex flex-col h-full min-h-[500px] bg-card/50 rounded-3xl p-4 border border-border backdrop-blur-sm">
-                            <div className={`flex items-center justify-between p-3 rounded-2xl mb-4 border ${col.color}`}>
-                                <span className="font-semibold">{col.title}</span>
-                                <span className="text-xs font-bold px-2 py-1 bg-background/50 rounded-full">
-                                    {tasks.filter(t => (t.status || "todo") === col.id).length}
-                                </span>
-                            </div>
-
-                            <SortableContext
-                                id={col.id}
-                                items={tasks.filter(t => (t.status || "todo") === col.id).map(t => t.id)}
-                                strategy={verticalListSortingStrategy}
-                            >
-                                <div className="flex-1 space-y-3 overflow-y-auto min-h-[100px]">
-                                    {tasks.filter(t => (t.status || "todo") === col.id).map(task => (
-                                        <SortableTaskCard
-                                            key={task.id}
-                                            task={task}
-                                            onDelete={handleDelete}
-                                        />
-                                    ))}
-                                    {tasks.filter(t => (t.status || "todo") === col.id).length === 0 && (
-                                        <div className="text-center text-muted-foreground py-10 text-sm italic">
-                                            Drop here
-                                        </div>
-                                    )}
-                                </div>
-                            </SortableContext>
-                        </div>
+                        <DroppableColumn key={col.id} col={col} tasks={tasks} onDelete={handleDelete} onStatusChange={handleStatusChange} />
                     ))}
                 </div>
 
@@ -246,7 +229,48 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     );
 }
 
-function SortableTaskCard({ task, onDelete }: { task: Task, onDelete: (id: string) => void }) {
+function DroppableColumn({ col, tasks, onDelete, onStatusChange }: { col: any, tasks: Task[], onDelete: (id: string) => void, onStatusChange: (id: string, status: string) => void }) {
+    const { setNodeRef } = useDroppable({
+        id: col.id,
+    });
+
+    const columnTasks = tasks.filter(t => (t.status || "todo") === col.id);
+
+    return (
+        <div ref={setNodeRef} className="flex flex-col h-full min-h-[500px] bg-card/50 rounded-3xl p-4 border border-border backdrop-blur-sm">
+            <div className={`flex items-center justify-between p-3 rounded-2xl mb-4 border ${col.color}`}>
+                <span className="font-semibold">{col.title}</span>
+                <span className="text-xs font-bold px-2 py-1 bg-background/50 rounded-full">
+                    {columnTasks.length}
+                </span>
+            </div>
+
+            <SortableContext
+                id={col.id}
+                items={columnTasks.map(t => t.id)}
+                strategy={verticalListSortingStrategy}
+            >
+                <div className="flex-1 space-y-3 overflow-y-auto min-h-[100px]">
+                    {columnTasks.map(task => (
+                        <SortableTaskCard
+                            key={task.id}
+                            task={task}
+                            onDelete={onDelete}
+                            onStatusChange={onStatusChange}
+                        />
+                    ))}
+                    {columnTasks.length === 0 && (
+                        <div className="text-center text-muted-foreground py-10 text-sm italic">
+                            Drop here
+                        </div>
+                    )}
+                </div>
+            </SortableContext>
+        </div>
+    );
+}
+
+function SortableTaskCard({ task, onDelete, onStatusChange }: { task: Task, onDelete: (id: string) => void, onStatusChange: (id: string, status: string) => void }) {
     const {
         attributes,
         listeners,
@@ -264,7 +288,7 @@ function SortableTaskCard({ task, onDelete }: { task: Task, onDelete: (id: strin
 
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
-            <TaskCardContent task={task} onDelete={onDelete} />
+            <TaskCardContent task={task} onDelete={onDelete} onStatusChange={onStatusChange} />
         </div>
     );
 }
@@ -272,12 +296,12 @@ function SortableTaskCard({ task, onDelete }: { task: Task, onDelete: (id: strin
 function TaskCardOverlay({ task }: { task: Task }) {
     return (
         <div className="opacity-90 rotate-2 scale-105 shadow-2xl cursor-grabbing">
-            <TaskCardContent task={task} onDelete={() => { }} isOverlay />
+            <TaskCardContent task={task} onDelete={() => { }} onStatusChange={() => { }} isOverlay />
         </div>
     );
 }
 
-function TaskCardContent({ task, onDelete, isOverlay }: { task: Task, onDelete: (id: string) => void, isOverlay?: boolean }) {
+function TaskCardContent({ task, onDelete, onStatusChange, isOverlay }: { task: Task, onDelete: (id: string) => void, onStatusChange: (id: string, status: string) => void, isOverlay?: boolean }) {
     const priorityColors = {
         low: "text-blue-500",
         medium: "text-yellow-500",
@@ -290,7 +314,7 @@ function TaskCardContent({ task, onDelete, isOverlay }: { task: Task, onDelete: 
                 <h3 className="font-bold text-foreground text-sm">{task.title}</h3>
                 <div className="relative flex gap-2">
                     {!isOverlay && (
-                        <button onClick={(e) => { e.stopPropagation(); onDelete(task.id); }} className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(task.id); }} className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Trash className="w-4 h-4" />
                         </button>
                     )}
@@ -306,8 +330,26 @@ function TaskCardContent({ task, onDelete, isOverlay }: { task: Task, onDelete: 
                     <AlertCircle className="w-3 h-3" />
                     {task.priority || 'Medium'}
                 </div>
-                {!isOverlay && (
-                    <div className="text-muted-foreground/30 group-hover:text-muted-foreground transition-colors">
+
+                {!isOverlay ? (
+                    <div className="flex gap-1" onPointerDown={(e) => e.stopPropagation()}>
+                        {/* Quick Actions restored */}
+                        {task.status !== 'done' && (
+                            <button onClick={(e) => { e.stopPropagation(); onStatusChange(task.id, 'done'); }} title="Mark Done" className="p-1 hover:bg-green-500/20 rounded text-muted-foreground hover:text-green-500">
+                                <CheckCircle className="w-4 h-4" />
+                            </button>
+                        )}
+                        {task.status === 'todo' && (
+                            <button onClick={(e) => { e.stopPropagation(); onStatusChange(task.id, 'in_progress'); }} title="Start" className="p-1 hover:bg-primary/20 rounded text-muted-foreground hover:text-primary">
+                                <Clock className="w-4 h-4" />
+                            </button>
+                        )}
+                        <div className="text-muted-foreground/30 group-hover:text-muted-foreground transition-colors ml-1 cursor-grab active:cursor-grabbing">
+                            <GripVertical className="w-4 h-4" />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-muted-foreground/30">
                         <GripVertical className="w-4 h-4" />
                     </div>
                 )}
