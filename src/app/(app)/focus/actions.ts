@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { focusSessions, dailyStats, users } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -87,6 +87,13 @@ export async function saveFocusSession(data: {
     const bonusXP = 50;
     const penaltyXP = distractions * 5;
     const totalXP = Math.max(0, baseXP + bonusXP - penaltyXP);
+
+    // 4. Update User XP
+    await db.update(users)
+        .set({
+            xp: sql`${users.xp} + ${totalXP}`
+        })
+        .where(eq(users.id, session.user.id));
 
     revalidatePath("/dashboard");
     revalidatePath("/analytics");

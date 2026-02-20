@@ -22,6 +22,32 @@ export async function getAnalyticsData() {
         limit: 30, // Last 30 days
     });
 
+    // Fill missing days for the graph (ensuring 30 bars)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+
+    const filledStats = [];
+    for (let i = 0; i < 30; i++) {
+        const date = new Date(thirtyDaysAgo);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split("T")[0];
+
+        const existingStat = stats.find(s => s.date === dateStr);
+        if (existingStat) {
+            filledStats.push(existingStat);
+        } else {
+            filledStats.push({
+                date: dateStr,
+                totalDeepWorkMinutes: 0,
+                sessionsCompleted: 0,
+                distractionCount: 0,
+                moodScore: 0,
+                userId: session.user.id,
+                id: `filler-${dateStr}`
+            });
+        }
+    }
+
     // Get recent focus sessions
     const recentSessions = await db.query.focusSessions.findMany({
         where: eq(focusSessions.userId, session.user.id),
@@ -48,7 +74,7 @@ export async function getAnalyticsData() {
     }
 
     return {
-        dailyStats: stats.reverse(), // For chart chronology
+        dailyStats: filledStats, // Correct order and filled
         recentSessions,
         totalDeepWorkHours: Math.round((totalDeepWorkHours[0]?.value || 0) / 60),
         totalSessions: totalSessions[0]?.value || 0,

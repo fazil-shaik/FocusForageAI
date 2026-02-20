@@ -1,5 +1,5 @@
 import { pgTable, text, integer, timestamp, boolean, uuid, jsonb } from "drizzle-orm/pg-core";
-			
+
 export const users = pgTable("user", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
@@ -8,9 +8,10 @@ export const users = pgTable("user", {
 	image: text("image"),
 	createdAt: timestamp("created_at").notNull(),
 	updatedAt: timestamp("updated_at").notNull(),
-    // Custom fields
-    plan: text("plan").default("free"),
-    deepWorkHours: integer("deep_work_hours").default(0),
+	// Custom fields
+	plan: text("plan").default("free"),
+	deepWorkHours: integer("deep_work_hours").default(0),
+	xp: integer("xp").default(0),
 });
 
 export const sessions = pgTable("session", {
@@ -52,38 +53,38 @@ export const verification = pgTable("verification", {
 // App specific tables
 
 export const focusSessions = pgTable("focus_session", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: text("user_id").notNull().references(() => users.id),
-    startTime: timestamp("start_time").notNull(),
-    endTime: timestamp("end_time"),
-    duration: integer("duration"), // in minutes
-    status: text("status").notNull().default("in_progress"), // in_progress, completed, abandoned
-    moodStart: text("mood_start"),
-    moodEnd: text("mood_end"),
-    taskName: text("task_name").notNull(),
-    notes: text("notes"),
-    createdAt: timestamp("created_at").defaultNow(),
+	id: uuid("id").primaryKey().defaultRandom(),
+	userId: text("user_id").notNull().references(() => users.id),
+	startTime: timestamp("start_time").notNull(),
+	endTime: timestamp("end_time"),
+	duration: integer("duration"), // in minutes
+	status: text("status").notNull().default("in_progress"), // in_progress, completed, abandoned
+	moodStart: text("mood_start"),
+	moodEnd: text("mood_end"),
+	taskName: text("task_name").notNull(),
+	notes: text("notes"),
+	createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const tasks = pgTable("task", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: text("user_id").notNull().references(() => users.id),
-    title: text("title").notNull(),
-    description: text("description"),
-    status: text("status").default("todo"), // todo, in_progress, done
-    priority: text("priority").default("medium"), // low, medium, high
-    dueDate: timestamp("due_date"),
-    estimatedDuration: integer("estimated_duration"), // in minutes
-    aiComplexityScore: integer("ai_complexity_score"),
-    createdAt: timestamp("created_at").defaultNow(),
+	id: uuid("id").primaryKey().defaultRandom(),
+	userId: text("user_id").notNull().references(() => users.id),
+	title: text("title").notNull(),
+	description: text("description"),
+	status: text("status").default("todo"), // todo, in_progress, done
+	priority: text("priority").default("medium"), // low, medium, high
+	dueDate: timestamp("due_date"),
+	estimatedDuration: integer("estimated_duration"), // in minutes
+	aiComplexityScore: integer("ai_complexity_score"),
+	createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const dailyStats = pgTable("daily_stats", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: text("user_id").notNull().references(() => users.id),
-    date: text("date").notNull(), // YYYY-MM-DD
-    totalDeepWorkMinutes: integer("total_deep_work_minutes").default(0),
-    sessionsCompleted: integer("sessions_completed").default(0),
-    distractionCount: integer("distraction_count").default(0),
-    moodScore: integer("mood_score"), // 1-10 average
+	id: uuid("id").primaryKey().defaultRandom(),
+	userId: text("user_id").notNull().references(() => users.id),
+	date: text("date").notNull(), // YYYY-MM-DD
+	totalDeepWorkMinutes: integer("total_deep_work_minutes").default(0),
+	sessionsCompleted: integer("sessions_completed").default(0),
+	distractionCount: integer("distraction_count").default(0),
+	moodScore: integer("mood_score"), // 1-10 average
 });

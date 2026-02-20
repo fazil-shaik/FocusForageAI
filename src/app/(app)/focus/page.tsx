@@ -45,7 +45,7 @@ export default function FocusSession() {
 
     const handleMoodSelect = (selectedMood: string) => {
         setMood(selectedMood);
-        if (selectedMood === "Tired") setDuration(15);
+        if (selectedMood === "Tired") setDuration(2);
         if (selectedMood === "Anxious") setDuration(20);
         if (selectedMood === "Flow") setDuration(50);
         if (selectedMood === "Neutral") setDuration(25);

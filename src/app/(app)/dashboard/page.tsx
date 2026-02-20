@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { BrainCircuit, Target, CheckCircle } from "lucide-react";
+import { BrainCircuit, Target, CheckCircle, Zap } from "lucide-react";
 import Link from "next/link";
 import { FocusTimer } from "@/components/FocusTimer";
 
@@ -18,6 +18,7 @@ interface SessionUser {
     email: string;
     image?: string | null;
     plan?: string;
+    xp?: number;
 }
 
 
@@ -56,7 +57,8 @@ export default async function Dashboard() {
     }
 
     const { session, recentTasks } = data;
-    const userFirstName = session.user.name?.split(" ")[0] || "User";
+    const user = session.user as SessionUser;
+    const userFirstName = user.name?.split(" ")[0] || "User";
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">
@@ -66,9 +68,15 @@ export default async function Dashboard() {
                     <h1 className="text-3xl font-bold text-foreground">
                         Good afternoon, {userFirstName}
                     </h1>
-                    <p className="text-muted-foreground flex items-center gap-2 mt-1">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        Focus Score: 85/100 (High)
+                    <p className="text-muted-foreground flex items-center gap-4 mt-1">
+                        <span className="flex items-center gap-1.5 capitalize">
+                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            Focus Score: 85/100
+                        </span>
+                        <span className="flex items-center gap-1.5 px-3 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-bold">
+                            <Zap className="w-3 h-3" />
+                            {user.xp || 0} XP
+                        </span>
                     </p>
                 </div>
                 <div className="flex gap-4">
