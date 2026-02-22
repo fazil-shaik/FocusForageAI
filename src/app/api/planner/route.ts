@@ -24,12 +24,23 @@ export async function POST(req: NextRequest) {
             where: eq(users.id, session.user.id),
         });
 
-        if (user?.plan === "free" && tasks.length > 3) {
-            // Option 1: Truncate
-            // tasks = tasks.slice(0, 3);
+        if (user?.plan === "free") {
+            const { redis } = await import("@/lib/redis");
+            const dateKey = new Date().toISOString().split("T")[0];
+            const redisKey = `planner_limit:${session.user.id}:${dateKey}`;
 
-            // Option 2: Error
-            return NextResponse.json({ error: "Free plan is limited to 3 tasks. Upgrade to Pro." }, { status: 403 });
+            const currentCount = await redis.get(redisKey);
+            if (currentCount && parseInt(currentCount) >= 1) {
+                return NextResponse.json({ error: "LIMIT_REACHED" }, { status: 403 });
+            }
+
+            if (tasks.length > 3) {
+                return NextResponse.json({ error: "Free plan is limited to 3 tasks. Upgrade to Pro." }, { status: 403 });
+            }
+
+            // Increment count immediately on generation
+            await redis.incr(redisKey);
+            await redis.expire(redisKey, 86400); // 1 day
         }
 
         if (!tasks || !availableTime || !energyLevel) {

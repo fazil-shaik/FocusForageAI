@@ -18,16 +18,12 @@ export async function savePlanToTasks(plan: any) {
     });
 
     if (user?.plan === "free") {
+        const { redis } = await import("@/lib/redis");
         const today = new Date().toISOString().split("T")[0];
-        const plannerTasks = await db.query.tasks.findFirst({
-            where: and(
-                eq(tasks.userId, session.user.id),
-                sql`DATE(${tasks.createdAt}) = ${today}`,
-                sql`${tasks.description} LIKE '%[Scheduled: %'`
-            )
-        });
+        const redisKey = `planner_limit:${session.user.id}:${today}`;
+        const currentCount = await redis.get(redisKey);
 
-        if (plannerTasks) {
+        if (currentCount && parseInt(currentCount) >= 1) {
             throw new Error("LIMIT_REACHED: Daily limit of 1 AI Plan reached for free users. Upgrade to Pro for unlimited planning.");
         }
     }
@@ -72,17 +68,14 @@ export async function getPlannerCredits() {
         return { count: Infinity, total: Infinity, plan: 'pro' };
     }
 
+    const { redis } = await import("@/lib/redis");
     const today = new Date().toISOString().split("T")[0];
-    const plannerTask = await db.query.tasks.findFirst({
-        where: and(
-            eq(taskTable.userId, session.user.id),
-            sql`DATE(${taskTable.createdAt}) = ${today}`,
-            sql`${taskTable.description} LIKE '%[Scheduled: %'`
-        )
-    });
+    const redisKey = `planner_limit:${session.user.id}:${today}`;
+    const currentCount = await redis.get(redisKey);
+    const count = currentCount ? parseInt(currentCount) : 0;
 
     return {
-        count: plannerTask ? 0 : 1,
+        count: count >= 1 ? 0 : 1,
         total: 1,
         plan: 'free'
     };

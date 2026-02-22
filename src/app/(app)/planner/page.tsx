@@ -18,7 +18,11 @@ export default function PlannerPage() {
     }, []);
 
     const handleGenerate = async () => {
-        // ... existing handleGenerate code
+        if (credits && credits.plan === 'free' && credits.count <= 0) {
+            toast.error("You have no planning credits left for today. Upgrade to Pro for unlimited access!");
+            return;
+        }
+
         setLoading(true);
         try {
             const taskList = tasks.split("\n").filter(t => t.trim().length > 0);
@@ -29,10 +33,18 @@ export default function PlannerPage() {
             });
             const data = await res.json();
             if (data.error && data.error === "LIMIT_REACHED") {
-                toast.error("AI Insights limit reached. Upgrade to Pro!");
+                toast.error("Daily planning limit reached. Upgrade to Pro!");
+                // Refresh credits to ensure UI is in sync
+                getPlannerCredits().then(setCredits);
+                return;
+            }
+            if (data.error) {
+                toast.error(data.error);
                 return;
             }
             setPlan(data);
+            // Refresh credits on successful generation
+            getPlannerCredits().then(setCredits);
         } catch (error) {
             console.error(error);
             toast.error("Failed to generate plan");
@@ -64,59 +76,85 @@ export default function PlannerPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Input Form */}
-                <div className="bg-card p-6 rounded-3xl space-y-6 border border-border shadow-sm">
-                    <div>
-                        <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
-                            <ListTodo className="w-4 h-4 text-primary" /> Tasks (One per line)
-                        </label>
-                        <textarea
-                            value={tasks}
-                            onChange={(e) => setTasks(e.target.value)}
-                            className="w-full h-40 bg-input border border-transparent rounded-2xl p-4 text-foreground focus:ring-2 focus:ring-primary transition-all resize-none placeholder:text-muted-foreground outline-none"
-                            placeholder="- Finish API documentation&#10;- Review PR #102&#10;- Write blog post intro"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="relative group">
+                    <div className={`bg-card p-6 rounded-3xl space-y-6 border border-border shadow-sm transition-all ${credits?.plan === 'free' && credits?.count <= 0 ? 'opacity-40 grayscale blur-[2px] pointer-events-none' : ''}`}>
                         <div>
                             <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-blue-500" /> Available Time
+                                <ListTodo className="w-4 h-4 text-primary" /> Tasks (One per line)
                             </label>
-                            <select
-                                value={availableTime}
-                                onChange={(e) => setAvailableTime(e.target.value)}
-                                className="w-full bg-input border border-transparent rounded-xl p-3 text-foreground focus:ring-2 focus:ring-primary outline-none"
-                            >
-                                <option>1 hour</option>
-                                <option>2 hours</option>
-                                <option>4 hours</option>
-                                <option>6 hours</option>
-                                <option>8 hours</option>
-                            </select>
+                            <textarea
+                                value={tasks}
+                                onChange={(e) => setTasks(e.target.value)}
+                                className="w-full h-40 bg-input border border-transparent rounded-2xl p-4 text-foreground focus:ring-2 focus:ring-primary transition-all resize-none placeholder:text-muted-foreground outline-none"
+                                placeholder="- Finish API documentation&#10;- Review PR #102&#10;- Write blog post intro"
+                            />
                         </div>
-                        <div>
-                            <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
-                                <Battery className="w-4 h-4 text-green-500" /> Energy Level
-                            </label>
-                            <select
-                                value={energyLevel}
-                                onChange={(e) => setEnergyLevel(e.target.value)}
-                                className="w-full bg-input border border-transparent rounded-xl p-3 text-foreground focus:ring-2 focus:ring-primary outline-none"
-                            >
-                                <option>High</option>
-                                <option>Medium</option>
-                                <option>Low</option>
-                            </select>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-blue-500" /> Available Time
+                                </label>
+                                <select
+                                    value={availableTime}
+                                    onChange={(e) => setAvailableTime(e.target.value)}
+                                    className="w-full bg-input border border-transparent rounded-xl p-3 text-foreground focus:ring-2 focus:ring-primary outline-none"
+                                >
+                                    <option>1 hour</option>
+                                    <option>2 hours</option>
+                                    <option>4 hours</option>
+                                    <option>6 hours</option>
+                                    <option>8 hours</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
+                                    <Battery className="w-4 h-4 text-green-500" /> Energy Level
+                                </label>
+                                <select
+                                    value={energyLevel}
+                                    onChange={(e) => setEnergyLevel(e.target.value)}
+                                    className="w-full bg-input border border-transparent rounded-xl p-3 text-foreground focus:ring-2 focus:ring-primary outline-none"
+                                >
+                                    <option>High</option>
+                                    <option>Medium</option>
+                                    <option>Low</option>
+                                </select>
+                            </div>
                         </div>
+
+                        <button
+                            onClick={handleGenerate}
+                            disabled={loading || !tasks || (credits?.plan === 'free' && credits?.count <= 0)}
+                            className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
+                        >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Sparkles className="w-5 h-5" /> Generate Plan</>}
+                        </button>
                     </div>
 
-                    <button
-                        onClick={handleGenerate}
-                        disabled={loading || !tasks}
-                        className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
-                    >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Sparkles className="w-5 h-5" /> Generate Plan</>}
-                    </button>
+                    {/* UPGRADE PROMPT */}
+                    {credits?.plan === 'free' && credits?.count <= 0 && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center p-6 text-center">
+                            <div className="bg-card/80 backdrop-blur-xl border border-primary/20 p-8 rounded-[2.5rem] shadow-2xl max-w-sm animate-in zoom-in-95 duration-300">
+                                <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
+                                    <Zap className="w-8 h-8 text-white fill-current" />
+                                </div>
+                                <h3 className="text-2xl font-black tracking-tight text-foreground mb-3">Limit Reached</h3>
+                                <p className="text-muted-foreground font-medium mb-8 leading-relaxed">
+                                    You've used your AI plan for today. Upgrade to <span className="text-primary font-bold">Pro</span> for unlimited architecture and deep work mapping.
+                                </p>
+                                <a
+                                    href="/pricing"
+                                    className="block w-full py-4 rounded-full bg-primary text-primary-foreground font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-xl shadow-primary/20"
+                                >
+                                    Unlock Pro Access ⚡
+                                </a>
+                                <p className="text-[10px] text-muted-foreground mt-4 font-bold uppercase tracking-widest">
+                                    Resets in 24 hours
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Results View */}

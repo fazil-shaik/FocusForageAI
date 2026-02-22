@@ -74,6 +74,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     const handleStatusChange = async (taskId: string, newStatus: string) => {
         if (newStatus === 'done') {
             setTasks(prev => prev.filter(t => t.id !== taskId));
+            toast.success("Task completed and archived!");
         } else {
             setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
         }
@@ -140,16 +141,13 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
         if (activeContainer !== overContainer) {
             // Moved to a different column
             if (overContainer === 'done') {
+                // Instantly remove from UI to "vanish"
                 setTasks(prev => prev.filter(t => t.id !== activeId));
+                toast.success("Task completed!");
             } else {
                 setTasks((prev) => prev.map(t => t.id === activeId ? { ...t, status: overContainer } : t));
             }
             await updateTaskStatus(activeId, overContainer);
-        } else {
-            // Reordered within same column (not persisted yet in DB as we don't have order field)
-            // But we can reorder locally for UI consistency if we used arrayMove
-            // For now, since we filter tasks by status, reordering only happens visually if we change the array order.
-            // A truly robust implementation needs 'order' field in DB.
         }
     };
 
