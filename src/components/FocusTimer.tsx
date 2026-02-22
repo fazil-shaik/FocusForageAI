@@ -118,12 +118,8 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
             toast.warning(`Boosted skip! ${res.xpEarned} XP deducted.`);
             setTimeLeft(0);
         } catch (error: any) {
-            if (error.message.includes("LIMIT_REACHED")) {
-                toast.error("Daily session limit reached. Upgrade to Pro!");
-            } else {
-                toast.error("Boost failed.");
-                console.error("Boost failed", error);
-            }
+            toast.error("Boost failed.");
+            console.error("Boost failed", error);
         } finally {
             setIsSaving(false);
         }
@@ -175,6 +171,7 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                         className="text-muted/10"
                     />
                     {/* Progress Fill */}
+                    {/* Main Circular Progress Ring with Glow */}
                     <motion.circle
                         cx="140"
                         cy="140"
@@ -185,8 +182,14 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                         strokeLinecap="round"
                         strokeDasharray={circumference}
                         initial={{ strokeDashoffset: circumference }}
-                        animate={{ strokeDashoffset }}
-                        transition={{ duration: isDragging ? 0 : (isPlaying ? 1 : 0.5), ease: "linear" }}
+                        animate={{
+                            strokeDashoffset,
+                            filter: isPlaying ? ["drop-shadow(0 0 2px var(--primary))", "drop-shadow(0 0 8px var(--primary))", "drop-shadow(0 0 2px var(--primary))"] : "none"
+                        }}
+                        transition={{
+                            strokeDashoffset: { duration: isDragging ? 0 : (isPlaying ? 1 : 0.5), ease: "linear" },
+                            filter: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                        }}
                     />
                     <defs>
                         <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -199,14 +202,14 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                 {/* Draggable Knob Handle */}
                 {!isPlaying && (
                     <motion.div
-                        className="absolute w-6 h-6 bg-white rounded-full border-2 border-primary shadow-xl z-30 cursor-grab active:cursor-grabbing touch-none"
+                        className="absolute w-6 h-6 bg-white rounded-full border-2 border-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)] z-30 cursor-grab active:cursor-grabbing touch-none"
                         style={{
                             left: knobX - 12,
                             top: knobY - 12,
                         }}
                         onMouseDown={() => setIsDragging(true)}
                         onTouchStart={() => setIsDragging(true)}
-                        whileHover={{ scale: 1.2 }}
+                        whileHover={{ scale: 1.2, boxShadow: "0 0 20px rgba(var(--primary-rgb),0.8)" }}
                         whileTap={{ scale: 0.9 }}
                     />
                 )}
@@ -221,67 +224,74 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                 )}
 
                 <motion.div
-                    animate={{ scale: isPlaying ? [1, 1.02, 1] : 1 }}
+                    animate={{ scale: isPlaying ? [1, 1.01, 1] : 1 }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     className="text-center z-10"
                 >
-                    <div className="text-7xl font-bold tracking-tighter tabular-nums text-foreground drop-shadow-sm">{formatTime(timeLeft)}</div>
-                    <div className="text-[10px] text-muted-foreground mt-2 font-black tracking-[0.2em] uppercase">Deep Work</div>
+                    <div className="text-7xl font-bold tracking-tighter tabular-nums text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">{formatTime(timeLeft)}</div>
+                    <div className="text-[10px] text-muted-foreground mt-2 font-black tracking-[0.2em] uppercase opacity-70">Deep Work</div>
                 </motion.div>
             </div>
 
-            <div className="flex items-center gap-6 z-10">
-                <button
-                    onClick={() => handleDurationChange(duration - 5)}
-                    className="p-3 rounded-full hover:bg-secondary/10 transition-colors text-muted-foreground hover:text-foreground"
-                    disabled={isPlaying}
-                    title="-5 Minutes"
-                >
-                    <ChevronLeft className="w-6 h-6" />
-                </button>
+            <div className="flex flex-col items-center gap-8 z-10 w-full">
+                <div className="flex items-center gap-6">
+                    <button
+                        onClick={() => handleDurationChange(duration - 5)}
+                        className="p-3 rounded-full hover:bg-secondary/10 transition-colors text-muted-foreground hover:text-foreground"
+                        disabled={isPlaying}
+                        title="-5 Minutes"
+                    >
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
 
-                <button onClick={resetTimer} className="p-4 rounded-full bg-secondary/10 border border-border hover:bg-secondary/20 text-muted-foreground hover:text-foreground transition-colors">
-                    <RefreshCw className="w-6 h-6" />
-                </button>
+                    <button onClick={resetTimer} className="p-4 rounded-full bg-secondary/10 border border-border hover:bg-secondary/20 text-muted-foreground hover:text-foreground transition-colors">
+                        <RefreshCw className="w-6 h-6" />
+                    </button>
 
-                <div className="relative">
                     <button
                         onClick={toggleTimer}
-                        className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform shadow-lg hover:shadow-primary/50 relative z-10"
+                        className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-all shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)] hover:shadow-[0_0_30px_rgba(var(--primary-rgb),0.6)] relative z-10 group"
                     >
                         {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
                     </button>
 
-                    {/* Boost Button - Moved further down and styled closer to requested 'handy' feel */}
-                    <AnimatePresence>
-                        {isPlaying && (
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-12 z-50">
-                                <motion.button
-                                    initial={{ y: -20, scale: 0.5, opacity: 0 }}
-                                    animate={{ y: 0, scale: 1, opacity: 1 }}
-                                    exit={{ y: -20, scale: 0.5, opacity: 0 }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleBoost();
-                                    }}
-                                    className="bg-accent hover:bg-accent/90 text-white px-5 py-2.5 rounded-2xl text-[10px] font-black shadow-[0_0_30px_rgba(236,72,153,0.4)] transition-all flex items-center gap-2 border border-white/20 whitespace-nowrap group hover:scale-105 active:scale-95"
-                                >
-                                    <Zap className="w-3.5 h-3.5 fill-current" />
-                                    BOOST SESSION (+10 XP)
-                                </motion.button>
-                            </div>
-                        )}
-                    </AnimatePresence>
+                    <button
+                        onClick={() => handleDurationChange(duration + 5)}
+                        className="p-3 rounded-full hover:bg-secondary/10 transition-all text-muted-foreground hover:text-foreground"
+                        disabled={isPlaying}
+                        title="+5 Minutes"
+                    >
+                        <ChevronRight className="w-6 h-6" />
+                    </button>
                 </div>
 
-                <button
-                    onClick={() => handleDurationChange(duration + 5)}
-                    className="p-3 rounded-full hover:bg-secondary/10 transition-all text-muted-foreground hover:text-foreground"
-                    disabled={isPlaying}
-                    title="+5 Minutes"
-                >
-                    <ChevronRight className="w-6 h-6" />
-                </button>
+                {/* Boost Button - Relocated and Highly Styled */}
+                <AnimatePresence>
+                    {isPlaying && (
+                        <motion.button
+                            initial={{ y: 20, opacity: 0, scale: 0.9 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ y: 20, opacity: 0, scale: 0.9 }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleBoost();
+                            }}
+                            className="relative group overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary opacity-20 group-hover:opacity-100 transition-opacity blur-xl rounded-2xl scale-110"></div>
+                            <div className="relative bg-[#0a0a0b]/80 backdrop-blur-xl border border-white/10 px-8 py-3 rounded-2xl flex items-center gap-3 transition-all group-hover:border-primary/50 group-hover:translate-y-[-2px] group-active:translate-y-[0px] shadow-2xl">
+                                <Zap className="w-4 h-4 text-primary animate-pulse" />
+                                <div className="flex flex-col items-start leading-none">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/80">Hyper Focus</span>
+                                    <span className="text-sm font-bold text-white mt-1">QUICK FINISH (-10 XP)</span>
+                                </div>
+                                <div className="ml-2 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                    <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
+                                </div>
+                            </div>
+                        </motion.button>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Hint for dragging */}

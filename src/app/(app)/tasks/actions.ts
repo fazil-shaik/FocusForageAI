@@ -26,25 +26,6 @@ export async function createTask(formData: FormData) {
     const description = formData.get("description") as string;
     const priority = formData.get("priority") as string;
 
-    // Check Plan Limits (5 tasks per day for free users)
-    const dbUser = await db.query.users.findFirst({
-        where: eq(users.id, session.user.id),
-    });
-
-    if (dbUser?.plan === "free") {
-        const today = new Date().toISOString().split("T")[0];
-        const { count } = await import("drizzle-orm");
-
-        const todayTasks = await db.select({ value: count() }).from(tasks).where(and(
-            eq(tasks.userId, session.user.id),
-            sql`DATE(${tasks.createdAt}) = ${today}`
-        ));
-
-        if (todayTasks[0]?.value && Number(todayTasks[0].value) >= 5) {
-            throw new Error("LIMIT_REACHED: Daily limit of 5 tasks reached for free users. Upgrade to Pro for unlimited tasks.");
-        }
-    }
-
     await db.insert(tasks).values({
         userId: session.user.id,
         title,

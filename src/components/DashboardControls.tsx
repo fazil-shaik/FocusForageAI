@@ -8,15 +8,15 @@ export function DashboardControls() {
     const [isReportOpen, setIsReportOpen] = useState(false);
 
     return (
-        <div className="flex gap-4">
+        <div className="flex items-center gap-3">
             <button
                 onClick={() => setIsReportOpen(true)}
-                className="px-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground hover:bg-secondary/10 transition-colors shadow-sm"
+                className="px-5 py-2.5 bg-secondary/10 hover:bg-secondary/20 border border-border rounded-xl text-xs font-bold transition-all hover:translate-y-[-1px] active:translate-y-0"
             >
                 Daily Report
             </button>
-            <Link href="/tasks" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all shadow-md flex items-center">
-                + New Task
+            <Link href="/tasks" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-xs font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-105 transition-all active:scale-95 flex items-center gap-2">
+                <span className="text-lg leading-none">+</span> New Task
             </Link>
 
             <DailyReportModal

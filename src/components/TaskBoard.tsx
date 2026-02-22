@@ -67,11 +67,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
             toast.success("Task created!");
             window.location.reload();
         } catch (error: any) {
-            if (error.message.includes("LIMIT_REACHED")) {
-                toast.error("Daily task limit reached. Upgrade to Pro!");
-            } else {
-                toast.error("Failed to create task.");
-            }
+            toast.error("Failed to create task.");
         }
     };
 

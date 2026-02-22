@@ -21,29 +21,10 @@ export async function saveFocusSession(data: {
 
     if (!session) throw new Error("Unauthorized");
 
-    // Fetch user for plan checks (if needed for other features later, currently not used after limit removal)
-    const user = await db.query.users.findFirst({
-        where: eq(users.id, session.user.id),
-    });
-
     const today = new Date().toISOString().split("T")[0];
     const taskName = data.taskName || "General Focus";
     const duration = data.duration;
     const distractions = data.distractionCount || 0;
-
-    // Check Focus Session Limits (3 sessions per day for free users)
-    if (user?.plan === "free") {
-        const todaySessions = await db.query.dailyStats.findFirst({
-            where: and(
-                eq(dailyStats.userId, session.user.id),
-                eq(dailyStats.date, today)
-            ),
-        });
-
-        if (todaySessions && (todaySessions.sessionsCompleted || 0) >= 3) {
-            throw new Error("LIMIT_REACHED: Daily limit of 3 focus sessions reached for free users. Upgrade to Pro for unlimited sessions.");
-        }
-    }
 
     // 1. Save Session
     await db.insert(focusSessions).values({

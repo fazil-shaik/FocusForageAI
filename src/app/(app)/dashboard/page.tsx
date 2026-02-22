@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { tasks, dailyStats, focusSessions, users } from "@/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
-import { BrainCircuit, Target, CheckCircle, Zap } from "lucide-react";
+import { BrainCircuit, Target, CheckCircle, Zap, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { FocusTimer } from "@/components/FocusTimer";
 import { DashboardControls } from "@/components/DashboardControls";
@@ -93,23 +93,30 @@ export default async function Dashboard() {
     });
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto space-y-8 relative">
+            {/* Mesh Gradient Background Overlay */}
+            <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse"></div>
+            <div className="absolute top-1/2 -right-24 w-80 h-80 bg-accent/10 blur-[100px] rounded-full pointer-events-none -z-10"></div>
+
             {/* Header */}
-            <header className="flex items-center justify-between mb-8">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground">
-                        Good afternoon, {userFirstName}
+                    <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-2">
+                        Good afternoon, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">{userFirstName}</span>
                     </h1>
-                    <p className="text-muted-foreground flex items-center gap-4 mt-1">
-                        <span className="flex items-center gap-1.5 capitalize">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            Focus Score: 85/100
-                        </span>
-                        <span className="flex items-center gap-1.5 px-3 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-bold">
-                            <Zap className="w-3 h-3" />
-                            {user.xp || 0} XP
-                        </span>
-                    </p>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/10 border border-border/50 rounded-2xl backdrop-blur-sm shadow-sm">
+                            <div className="relative flex items-center justify-center">
+                                <span className="absolute w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                                <span className="relative w-2 h-2 rounded-full bg-green-500"></span>
+                            </div>
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Focus Score: <span className="text-foreground">85/100</span></span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-2xl backdrop-blur-sm shadow-sm group hover:scale-105 transition-transform cursor-default">
+                            <Zap className="w-3.5 h-3.5 text-primary fill-current" />
+                            <span className="text-xs font-black text-primary tracking-wider">{user.xp || 0} XP</span>
+                        </div>
+                    </div>
                 </div>
                 <DashboardControls />
             </header>
@@ -127,8 +134,9 @@ export default async function Dashboard() {
                 <div className="space-y-6">
 
                     {/* AI Insight Card */}
-                    <div className="bg-card/50 rounded-2xl p-6 border-l-4 border-l-primary border border-border backdrop-blur-sm shadow-sm hover:shadow-md transition-all group">
-                        <h3 className="text-sm font-bold text-muted-foreground mb-2 flex items-center justify-between">
+                    <div className="bg-card/40 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl hover:shadow-primary/5 transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-accent"></div>
+                        <h3 className="text-xs font-black text-muted-foreground mb-3 flex items-center justify-between uppercase tracking-widest">
                             <span className="flex items-center gap-2">
                                 <BrainCircuit className="w-4 h-4 text-primary animate-pulse" /> AI Insight
                             </span>
@@ -138,42 +146,54 @@ export default async function Dashboard() {
                                 </Link>
                             )}
                         </h3>
-                        <p className="text-sm leading-relaxed text-foreground font-medium italic">
-                            {aiInsight === "LIMIT_REACHED" ? (
-                                <span className="text-muted-foreground not-italic">Daily insight limit reached. Upgrade to Pro for unlimited coaching and advanced neural patterns.</span>
-                            ) : (
-                                `"${aiInsight}"`
-                            )}
+                        <p className="text-sm leading-relaxed text-foreground font-medium italic opacity-90">
+                            "{aiInsight}"
                         </p>
                     </div>
 
                     {/* Task List Preview */}
-                    <div className="bg-card rounded-2xl p-6 flex-1 border border-border shadow-sm">
-                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-foreground">
+                    <div className="bg-card/40 backdrop-blur-xl rounded-3xl p-6 flex-1 border border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 blur-3xl rounded-full -mr-12 -mt-12 group-hover:bg-accent/10 transition-colors"></div>
+                        <h3 className="text-lg font-extrabold mb-6 flex items-center gap-2 text-foreground">
                             <Target className="w-5 h-5 text-accent" /> Up Next
                         </h3>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             {recentTasks.length === 0 ? (
-                                <p className="text-muted-foreground text-sm">No pending tasks. Great job!</p>
+                                <div className="py-8 text-center space-y-3">
+                                    <div className="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center mx-auto">
+                                        <CheckCircle className="w-6 h-6 text-muted-foreground/30" />
+                                    </div>
+                                    <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">No pending tasks</p>
+                                </div>
                             ) : (
                                 recentTasks.map((task) => (
-                                    <div key={task.id} className="group p-3 rounded-xl bg-secondary/5 border border-border hover:border-primary/30 transition-all cursor-pointer flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${task.status === 'done' ? 'border-green-500 bg-green-500/20' : 'border-muted-foreground/30 group-hover:border-primary'} transition-colors`}>
-                                            {task.status === 'done' && <CheckCircle className="w-3 h-3 text-green-500" />}
+                                    <div key={task.id} className="group p-4 rounded-2xl bg-secondary/5 border border-white/5 hover:border-primary/30 hover:bg-secondary/10 transition-all cursor-pointer flex items-center gap-4 relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-primary/0 to-primary/0 group-hover:from-primary/5 transition-all"></div>
+                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.status === 'done' ? 'border-green-500 bg-green-500/20' : 'border-muted-foreground/20 group-hover:border-primary group-hover:bg-primary/10'} transition-all`}>
+                                            {task.status === 'done' && <CheckCircle className="w-3.5 h-3.5 text-green-500" />}
                                         </div>
-                                        <div>
-                                            <p className={`text-sm font-medium transition-colors ${task.status === 'done' ? 'text-muted-foreground line-through' : 'text-foreground group-hover:text-primary'}`}>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-bold truncate transition-colors ${task.status === 'done' ? 'text-muted-foreground line-through' : 'text-foreground group-hover:text-primary'}`}>
                                                 {task.title}
                                             </p>
-                                            <p className="text-xs text-muted-foreground capitalize">
-                                                {task.priority} Priority • {task.estimatedDuration || 15}m
-                                            </p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md ${task.priority === 'high' ? 'bg-red-500/10 text-red-500' :
+                                                    task.priority === 'medium' ? 'bg-yellow-500/10 text-yellow-500' :
+                                                        'bg-blue-500/10 text-blue-500'
+                                                    }`}>
+                                                    {task.priority}
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground font-bold tracking-tight">
+                                                    • {task.estimatedDuration || 15}m
+                                                </span>
+                                            </div>
                                         </div>
+                                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                                     </div>
                                 ))
                             )}
                         </div>
-                        <Link href="/tasks" className="block w-full mt-4 py-2 text-center text-xs font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest border-t border-border pt-4">
+                        <Link href="/tasks" className="block w-full mt-6 py-3 text-center text-[10px] font-black text-muted-foreground hover:text-primary transition-all uppercase tracking-[0.2em] border-t border-white/5 px-4 hover:bg-primary/5 rounded-b-3xl -mx-6 -mb-6 mt-auto">
                             View All Tasks
                         </Link>
                     </div>
