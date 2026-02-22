@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RefreshCw, Zap, BrainCircuit, ChevronLeft, ChevronRight, Brain } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { saveFocusSession } from "@/app/(app)/focus/actions";
+import { startFocusSession, endFocusSession, updateFocusHeartbeat } from "@/app/(app)/focus/actions";
 import { toast } from "sonner";
+import { MentalState } from "@/lib/xp-engine";
 
 
 import { tasks } from "@/db/schema";
@@ -20,10 +21,31 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(recentTasks[0]?.id || null);
     const [isSaving, setIsSaving] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    const [mentalState, setMentalState] = useState<MentalState>("Neutral");
+
     const circleRef = useRef<SVGSVGElement>(null);
+    const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
 
     const radius = 120;
     const circumference = 2 * Math.PI * radius;
+
+    // Heartbeat Logic for Dashboard Timer
+    useEffect(() => {
+        if (isPlaying && sessionId) {
+            heartbeatInterval.current = setInterval(async () => {
+                await updateFocusHeartbeat({
+                    isIdle: false, // Dashboard timer doesn't track idle as strictly yet
+                    isTabHidden: document.hidden,
+                });
+            }, 5000);
+        } else {
+            if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
+        }
+        return () => {
+            if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
+        };
+    }, [isPlaying, sessionId]);
 
     const handleMouseMove = (e: MouseEvent | TouchEvent) => {
         if (!isDragging || isPlaying || !circleRef.current) return;
@@ -63,23 +85,24 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                 setTimeLeft((prev) => prev - 1);
             }, 1000);
         } else if (timeLeft === 0 && isPlaying) {
-            setIsPlaying(false);
-            saveFocusSession({
-                duration: duration,
-                taskName: recentTasks.find(t => t.id === selectedTaskId)?.title || "Dashboard Timer Session",
-                taskId: selectedTaskId || undefined
-            }).then((res) => {
-                toast.success(`Session saved! +${res.xpEarned} XP earned.`);
-            }).catch(err => {
-                if (err.message.includes("LIMIT_REACHED")) {
-                    toast.error("Daily session limit reached. Upgrade to Pro!");
-                } else {
-                    toast.error("Failed to save session.");
-                }
-            });
+            handleFinish();
         }
         return () => clearInterval(interval);
     }, [isPlaying, timeLeft]);
+
+    const handleFinish = async () => {
+        setIsPlaying(false);
+        setIsSaving(true);
+        try {
+            const res = await endFocusSession({ status: "completed", taskId: selectedTaskId || undefined });
+            toast.success(`Session saved! +${res.xpEarned} XP earned.`);
+            setSessionId(null);
+        } catch (err) {
+            toast.error("Failed to sync session.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
@@ -87,10 +110,34 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const toggleTimer = () => setIsPlaying(!isPlaying);
+    const toggleTimer = async () => {
+        if (!isPlaying) {
+            // Starting session
+            try {
+                const res = await startFocusSession({
+                    duration,
+                    mentalState,
+                    taskName: recentTasks.find(t => t.id === selectedTaskId)?.title || "Dashboard Timer",
+                    taskId: selectedTaskId || undefined,
+                    allowedDomains: [],
+                    blockedDomains: []
+                });
+                setSessionId(res.sessionId);
+                setIsPlaying(true);
+                toast.success("Focus started!");
+            } catch (err) {
+                toast.error("Failed to start session.");
+            }
+        } else {
+            // Pausing/Stopping (Treat as interim completion for simplicity in dashboard)
+            setIsPlaying(false);
+        }
+    };
+
     const resetTimer = () => {
         setIsPlaying(false);
         setTimeLeft(duration * 60);
+        setSessionId(null);
     };
 
     const handleDurationChange = (newVal: number) => {
@@ -101,22 +148,18 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
     };
 
     const handleBoost = async () => {
-        if (isSaving) return;
+        if (isSaving || !sessionId) return;
         setIsSaving(true);
         setIsPlaying(false);
 
-        const currentTask = recentTasks.find(t => t.id === selectedTaskId);
-
         try {
-            const res = await saveFocusSession({
-                duration: duration - Math.floor(timeLeft / 60),
-                taskName: currentTask?.title || "Boosted Session",
-                isBoosted: true,
-                taskId: selectedTaskId || undefined,
-                taskStatus: "in_progress"
+            const res = await endFocusSession({
+                status: "completed",
+                taskId: selectedTaskId || undefined
             });
-            toast.warning(`Boosted skip! ${res.xpEarned} XP deducted.`);
+            toast.warning(`Boosted skip! ${res.xpEarned} XP change.`);
             setTimeLeft(0);
+            setSessionId(null);
         } catch (error: any) {
             toast.error("Boost failed.");
             console.error("Boost failed", error);

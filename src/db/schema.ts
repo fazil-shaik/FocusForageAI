@@ -61,9 +61,18 @@ export const focusSessions = pgTable("focus_session", {
 	status: text("status").notNull().default("in_progress"), // in_progress, completed, abandoned
 	moodStart: text("mood_start"),
 	moodEnd: text("mood_end"),
+	mentalState: text("mental_state"),
 	taskName: text("task_name").notNull(),
 	notes: text("notes"),
 	isBoosted: boolean("is_boosted").default(false),
+	allowedDomains: jsonb("allowed_domains").default([]),
+	blockedDomains: jsonb("blocked_domains").default([]),
+	xpStart: integer("xp_start"),
+	xpCurrent: integer("xp_current"),
+	distractionCount: integer("distraction_count").default(0),
+	distractionEvents: jsonb("distraction_events").default([]),
+	idleTime: integer("idle_time").default(0), // in seconds
+	tabSwitchCount: integer("tab_switch_count").default(0),
 	createdAt: timestamp("created_at").defaultNow(),
 });
 

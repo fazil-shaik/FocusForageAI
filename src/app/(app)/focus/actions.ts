@@ -5,90 +5,195 @@ import { focusSessions, dailyStats, users, tasks } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redis } from "@/lib/redis";
+import { calculateXPChange, MentalState } from "@/lib/xp-engine";
 
-
-export async function saveFocusSession(data: {
+export async function startFocusSession(data: {
     duration: number; // in minutes
-    moodStart?: string;
-    taskName?: string;
-    distractionCount?: number;
-    isBoosted?: boolean;
+    mentalState: MentalState;
+    taskName: string;
+    allowedDomains: string[];
+    blockedDomains: string[];
     taskId?: string;
-    taskStatus?: "todo" | "in_progress" | "done";
 }) {
     const session = await getSession();
-
     if (!session) throw new Error("Unauthorized");
 
-    const today = new Date().toISOString().split("T")[0];
-    const taskName = data.taskName || "General Focus";
-    const duration = data.duration;
-    const distractions = data.distractionCount || 0;
+    const dbUser = await db.query.users.findFirst({
+        where: eq(users.id, session.user.id),
+    });
 
-    // 1. Save Session
-    await db.insert(focusSessions).values({
+    const xpStart = dbUser?.xp || 0;
+
+    // 1. Create Postgres Entry
+    const [newSession] = await db.insert(focusSessions).values({
         userId: session.user.id,
-        startTime: new Date(Date.now() - duration * 60 * 1000), // Approximate start time
-        endTime: new Date(),
-        duration: duration,
-        status: "completed",
-        moodStart: data.moodStart,
-        taskName: taskName,
-        isBoosted: data.isBoosted || false,
+        startTime: new Date(),
+        duration: data.duration,
+        status: "in_progress",
+        mentalState: data.mentalState,
+        taskName: data.taskName,
+        xpStart: xpStart,
+        allowedDomains: data.allowedDomains,
+        blockedDomains: data.blockedDomains,
+    }).returning();
+
+    // 2. Initialize Redis State
+    const sessionKey = `focus:session:${session.user.id}`;
+    await redis.hset(sessionKey, {
+        sessionId: newSession.id,
+        startTime: Date.now(),
+        mentalState: data.mentalState,
+        xpStart: xpStart,
+        distractionCount: 0,
+        idleTime: 0,
+        tabSwitchCount: 0,
+        lastHeartbeat: Date.now(),
     });
 
-    // 2. Update Daily Stats
-    const existingStats = await db.query.dailyStats.findFirst({
-        where: and(
-            eq(dailyStats.userId, session.user.id),
-            eq(dailyStats.date, today)
-        ),
-    });
-
-    if (existingStats) {
-        await db.update(dailyStats)
-            .set({
-                totalDeepWorkMinutes: (existingStats.totalDeepWorkMinutes || 0) + duration,
-                sessionsCompleted: (existingStats.sessionsCompleted || 0) + 1,
-                distractionCount: (existingStats.distractionCount || 0) + distractions,
-            })
-            .where(eq(dailyStats.id, existingStats.id));
-    } else {
-        await db.insert(dailyStats).values({
-            userId: session.user.id,
-            date: today,
-            totalDeepWorkMinutes: duration,
-            sessionsCompleted: 1,
-            distractionCount: distractions,
-        });
+    // 3. Optional Task Update
+    if (data.taskId) {
+        await db.update(tasks)
+            .set({ status: "in_progress" })
+            .where(and(eq(tasks.id, data.taskId), eq(tasks.userId, session.user.id)));
     }
 
-    // 3. Calculate XP (Refined per feedback)
-    // Normal: 10/min + 50 bonus - distractions penalty
-    // Boost: -10 XP penalty
-    const baseXP = data.isBoosted ? 0 : duration * 10;
-    const bonusXP = data.isBoosted ? -10 : 50;
-    const penaltyXP = distractions * 5;
-    const totalXPChange = baseXP + bonusXP - penaltyXP;
+    return { success: true, sessionId: newSession.id };
+}
 
-    // 4. Update User XP (Ensuring it doesn't go below 0)
+export async function updateFocusHeartbeat(data: {
+    isIdle: boolean;
+    isTabHidden: boolean;
+    event?: { type: string; timestamp: number; details?: any };
+}) {
+    const session = await getSession();
+    if (!session) throw new Error("Unauthorized");
+
+    const sessionKey = `focus:session:${session.user.id}`;
+    const activeSession = await redis.hgetall(sessionKey);
+
+    if (!activeSession || !activeSession.sessionId) return { active: false };
+
+    // Anti-Cheat: Validate heartbeat interval (roughly 5s)
+    const now = Date.now();
+    const lastHeartbeat = parseInt(activeSession.lastHeartbeat);
+    const drift = now - lastHeartbeat;
+
+    // Heartbeats should be ~5s apart. 
+    // If they come too fast (< 3s), we ignore the update instead of crashing.
+    // This handles network jitter or multiple open tabs more gracefully.
+    if (drift < 3000) {
+        console.warn("Heartbeat received too early. Ignoring for anti-cheat.");
+        return { active: true, ignored: true };
+    }
+
+    // If drift is too large, session might have been suspended or tampered
+    if (drift > 60000) { // 1 minute gap
+        console.warn("Large heartbeat drift detected. Potential suspension.");
+    }
+
+    const updates: any = {
+        lastHeartbeat: now,
+    };
+
+    if (data.isIdle) {
+        updates.idleTime = parseInt(activeSession.idleTime) + 5;
+    }
+
+    if (data.isTabHidden) {
+        // We handle tab switches via explicit events mostly, but logic can be here
+    }
+
+    if (data.event) {
+        const eventsKey = `focus:events:${activeSession.sessionId}`;
+        await redis.rpush(eventsKey, JSON.stringify(data.event));
+
+        if (data.event.type === "tab_switch" || data.event.type === "distraction") {
+            updates.distractionCount = parseInt(activeSession.distractionCount) + 1;
+            updates.tabSwitchCount = parseInt(activeSession.tabSwitchCount) + (data.event.type === "tab_switch" ? 1 : 0);
+        }
+    }
+
+    await redis.hset(sessionKey, updates);
+
+    return { active: true };
+}
+
+export async function endFocusSession(data: {
+    status: "completed" | "abandoned";
+    taskId?: string;
+}) {
+    const session = await getSession();
+    if (!session) throw new Error("Unauthorized");
+
+    const sessionKey = `focus:session:${session.user.id}`;
+    const activeSession = await redis.hgetall(sessionKey);
+
+    if (!activeSession || !activeSession.sessionId) throw new Error("No active session");
+
+    // 1. Fetch Events from Redis
+    const eventsKey = `focus:events:${activeSession.sessionId}`;
+    const events = await redis.lrange(eventsKey, 0, -1);
+    const parsedEvents = events.map(e => JSON.parse(e));
+
+    const distractionCount = parseInt(activeSession.distractionCount);
+    const totalDuration = Math.round((Date.now() - parseInt(activeSession.startTime)) / 60000);
+
+    // 2. Authoritative XP Calculation
+    const xpChange = calculateXPChange({
+        durationMinutes: totalDuration,
+        mentalState: activeSession.mentalState as MentalState,
+        distractionCount,
+        isBoosted: false,
+        isCompleted: data.status === "completed"
+    });
+
+    // 3. Update Postgres
+    await db.update(focusSessions)
+        .set({
+            endTime: new Date(),
+            status: data.status,
+            distractionCount: distractionCount,
+            distractionEvents: parsedEvents,
+            idleTime: parseInt(activeSession.idleTime),
+            tabSwitchCount: parseInt(activeSession.tabSwitchCount),
+            xpCurrent: parseInt(activeSession.xpStart) + xpChange,
+        })
+        .where(eq(focusSessions.id, activeSession.sessionId));
+
     await db.update(users)
         .set({
-            xp: sql`GREATEST(0, ${users.xp} + ${totalXPChange})`
+            xp: sql`GREATEST(0, ${users.xp} + ${xpChange})`
         })
         .where(eq(users.id, session.user.id));
 
-    // 5. Optional Task Update
-    if (data.taskId && data.taskStatus) {
-        await db.update(tasks)
-            .set({ status: data.taskStatus })
-            .where(and(eq(tasks.id, data.taskId), eq(tasks.userId, session.user.id)));
-        revalidatePath("/tasks");
+    // 4. Update Daily Stats
+    const today = new Date().toISOString().split("T")[0];
+    const existingStats = await db.query.dailyStats.findFirst({
+        where: and(eq(dailyStats.userId, session.user.id), eq(dailyStats.date, today)),
+    });
+
+    if (existingStats) {
+        await db.update(dailyStats).set({
+            totalDeepWorkMinutes: (existingStats.totalDeepWorkMinutes || 0) + totalDuration,
+            sessionsCompleted: (existingStats.sessionsCompleted || 0) + (data.status === "completed" ? 1 : 0),
+            distractionCount: (existingStats.distractionCount || 0) + distractionCount
+        }).where(eq(dailyStats.id, existingStats.id));
+    }
+
+    // 5. Cleanup Redis
+    await redis.del(sessionKey);
+    await redis.del(eventsKey);
+
+    if (data.taskId) {
+        await db.update(tasks).set({ status: data.status === "completed" ? "done" : "todo" }).where(eq(tasks.id, data.taskId));
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/analytics");
+    revalidatePath("/focus");
 
-    return { success: true, xpEarned: totalXPChange };
+    return { xpEarned: xpChange };
 }
+
+// Deprecated old action replaced by endFocusSession for compatibility if needed
+// export async function saveFocusSession(...) { ... }

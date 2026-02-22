@@ -1,49 +1,117 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Brain, CheckCircle, Volume2, Maximize2, X, AlertTriangle, Activity } from "lucide-react";
+import { Play, Pause, Brain, CheckCircle, Volume2, Maximize2, X, AlertTriangle, Activity, ChevronRight, Zap, Target, Battery, BrainCircuit, Waves, Clock, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { saveFocusSession } from "./actions";
+import { startFocusSession, updateFocusHeartbeat, endFocusSession } from "./actions";
+import { toast } from "sonner";
+import { MentalState } from "@/lib/xp-engine";
+import { useSpring, useTransform } from "framer-motion";
 
+function Counter({ value }: { value: number }) {
+    const spring = useSpring(0, { mass: 0.8, stiffness: 75, damping: 15 });
+    const display = useTransform(spring, (current) => Math.round(current).toLocaleString());
+
+    useEffect(() => {
+        spring.set(value);
+    }, [value, spring]);
+
+    return <motion.span>{display}</motion.span>;
+}
 
 export default function FocusSession() {
     const [step, setStep] = useState<"checkin" | "timer" | "summary">("checkin");
-    const [mood, setMood] = useState("");
+    const [mood, setMood] = useState<MentalState>("Neutral");
     const [duration, setDuration] = useState(25);
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [isActive, setIsActive] = useState(false);
-    const [distractions, setDistractions] = useState(0);
     const [xpEarned, setXpEarned] = useState(0);
     const [isSaving, setIsSaving] = useState(false);
-    const [isPermissionsGranted, setIsPermissionsGranted] = useState(false);
-    const [showMindfulReturn, setShowMindfulReturn] = useState(false);
-    const [awayDuration, setAwayDuration] = useState(0);
-    const [lastAwayTime, setLastAwayTime] = useState<number | null>(null);
     const [sessionGoal, setSessionGoal] = useState("");
+    const [sessionId, setSessionId] = useState<string | null>(null);
 
-    // Distraction Tracking
+    // Activity tracking refs
+    const lastActivityTime = useRef(Date.now());
+    const isIdle = useRef(false);
+    const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
+
+    // 1. Heartbeat Loop
     useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (document.hidden && isActive) {
-                setLastAwayTime(Date.now());
-            } else if (!document.hidden && isActive && lastAwayTime) {
-                const duration = (Date.now() - lastAwayTime) / 1000;
-                if (duration > 5) { // 5 second grace period
-                    setAwayDuration(Math.round(duration));
-                    setShowMindfulReturn(true);
-                    setIsActive(false); // Pause timer while they explain
+        if (isActive && sessionId) {
+            heartbeatInterval.current = setInterval(async () => {
+                const now = Date.now();
+                const idleSeconds = (now - lastActivityTime.current) / 1000;
+
+                if (idleSeconds > 60 && !isIdle.current) {
+                    isIdle.current = true;
+                    toast.warning("Idle detected! Stay focused.");
+                    await updateFocusHeartbeat({
+                        isIdle: true,
+                        isTabHidden: document.hidden,
+                        event: { type: "distraction", details: { reason: "idle_timeout" }, timestamp: now }
+                    });
+                } else {
+                    if (idleSeconds <= 60) isIdle.current = false;
+                    await updateFocusHeartbeat({
+                        isIdle: isIdle.current,
+                        isTabHidden: document.hidden
+                    });
                 }
-                setLastAwayTime(null);
+            }, 5000);
+        } else {
+            if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
+        }
+        return () => {
+            if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
+        };
+    }, [isActive, sessionId]);
+
+    // 2. Distraction Detection
+    useEffect(() => {
+        const handleVisibilityChange = async () => {
+            if (document.hidden && isActive && sessionId) {
+                await updateFocusHeartbeat({
+                    isIdle: isIdle.current,
+                    isTabHidden: true,
+                    event: { type: "tab_switch", timestamp: Date.now() }
+                });
+                toast.error("Tab switch detected! Penalty applied.");
             }
         };
 
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [isActive, lastAwayTime]);
+        const handleFocusBlur = async (e: FocusEvent) => {
+            if (e.type === "blur" && isActive && sessionId) {
+                await updateFocusHeartbeat({
+                    isIdle: isIdle.current,
+                    isTabHidden: document.hidden,
+                    event: { type: "distraction", details: { reason: "window_blur" }, timestamp: Date.now() }
+                });
+            }
+        };
 
-    // Timer Logic
+        const resetIdleTimer = () => {
+            lastActivityTime.current = Date.now();
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        window.addEventListener("blur", handleFocusBlur);
+        window.addEventListener("focus", handleFocusBlur);
+        window.addEventListener("mousemove", resetIdleTimer);
+        window.addEventListener("keydown", resetIdleTimer);
+        window.addEventListener("touchstart", resetIdleTimer);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("blur", handleFocusBlur);
+            window.removeEventListener("focus", handleFocusBlur);
+            window.removeEventListener("mousemove", resetIdleTimer);
+            window.removeEventListener("keydown", resetIdleTimer);
+            window.removeEventListener("touchstart", resetIdleTimer);
+        };
+    }, [isActive, sessionId]);
+
+    // 3. Timer Logic
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (isActive && timeLeft > 0) {
@@ -56,62 +124,66 @@ export default function FocusSession() {
         return () => clearInterval(interval);
     }, [isActive, timeLeft]);
 
-    const handleMoodSelect = (selectedMood: string) => {
+    const handleMoodSelect = (selectedMood: MentalState) => {
         setMood(selectedMood);
-        if (selectedMood === "Tired") setDuration(2);
-        if (selectedMood === "Anxious") setDuration(20);
-        if (selectedMood === "Flow") setDuration(50);
-        if (selectedMood === "Neutral") setDuration(25);
+        if (selectedMood === "Tired") setDuration(20);
+        if (selectedMood === "Anxious") setDuration(25);
+        if (selectedMood === "Flow") setDuration(60);
+        if (selectedMood === "Neutral") setDuration(45);
     };
 
-    const startSession = () => {
+    const handleStart = async () => {
         if (!sessionGoal.trim()) {
-            alert("Please set a goal for this session to stay focused!");
+            toast.error("Please set a goal for this session.");
             return;
         }
-        setTimeLeft(duration * 60);
-        setStep("timer");
-        setIsActive(true);
-        setDistractions(0);
 
-        // Request notification permission if advanced check is enabled
-        if (isPermissionsGranted && "Notification" in window) {
-            Notification.requestPermission();
+        try {
+            const res = await startFocusSession({
+                duration: duration,
+                mentalState: mood,
+                taskName: sessionGoal,
+                allowedDomains: [],
+                blockedDomains: [],
+            });
+            setSessionId(res.sessionId);
+            setTimeLeft(duration * 60);
+            setStep("timer");
+            setIsActive(true);
+            toast.success(`Session started in ${mood} mode.`);
+        } catch (error) {
+            toast.error("Failed to start session.");
         }
     };
-
-    // Focus Ping Logic
-    useEffect(() => {
-        let pingInterval: NodeJS.Timeout;
-        if (isActive && isPermissionsGranted && "Notification" in window && Notification.permission === "granted") {
-            pingInterval = setInterval(() => {
-                if (document.hidden) {
-                    new Notification("Focus Check! 🧠", {
-                        body: `Still working on: ${sessionGoal}? Keep it up!`,
-                        icon: "/brain-icon.png" // Fallback if no icon
-                    });
-                }
-            }, 5 * 60 * 1000); // Ping every 5 minutes if tab is hidden
-        }
-        return () => clearInterval(pingInterval);
-    }, [isActive, isPermissionsGranted, sessionGoal]);
 
     const finishSession = async () => {
         setIsActive(false);
         setIsSaving(true);
         try {
-            const result = await saveFocusSession({
-                duration: duration,
-                moodStart: mood,
-                distractionCount: distractions,
-                taskName: sessionGoal || "Focus Mode Session"
-            });
+            const result = await endFocusSession({ status: "completed" });
             setXpEarned(result.xpEarned);
             setStep("summary");
+            toast.success("Session completed and synced!");
         } catch (error) {
-            console.error("Failed to save session", error);
+            toast.error("Failed to sync final results.");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const abandonSession = async () => {
+        if (confirm("Are you sure you want to abandon this session?")) {
+            setIsActive(false);
+            setIsSaving(true);
+            try {
+                const result = await endFocusSession({ status: "abandoned" });
+                setXpEarned(result.xpEarned);
+                setStep("summary");
+            } catch (error) {
+                toast.error("Failed to abandon session.");
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
@@ -121,161 +193,173 @@ export default function FocusSession() {
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
+    const moods = [
+        { name: "Tired", icon: Battery, color: "from-blue-500/20 to-slate-500/20", border: "border-blue-500/30", multiplier: "0.6x Penalty", description: "Softer distractions" },
+        { name: "Anxious", icon: Waves, color: "from-amber-500/20 to-orange-500/20", border: "border-amber-500/30", multiplier: "2 Shield", description: "Ignores 2 breaks" },
+        { name: "Neutral", icon: Activity, color: "from-slate-500/20 to-indigo-500/20", border: "border-slate-500/30", multiplier: "1.0x Base", description: "Standard accuracy" },
+        { name: "Flow", icon: BrainCircuit, color: "from-purple-500/30 to-blue-500/30", border: "border-purple-500/50", multiplier: "1.5x Penalty", description: "Strict discipline" },
+    ];
+
     return (
-        <div className="h-[calc(100vh-80px)] flex flex-col items-center justify-center relative overflow-hidden rounded-3xl bg-card border border-border shadow-2xl">
-            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5 pointer-events-none"></div>
+        <div className="min-h-[calc(100vh-100px)] w-full relative flex items-center justify-center p-4 overflow-hidden">
+            {/* Ambient Background Decoration */}
+            <div className="absolute top-0 left-0 w-full h-full -z-10 bg-[#050505]" />
+            <motion.div
+                animate={{
+                    scale: [1, 1.2, 1],
+                    x: [0, 50, 0],
+                    y: [0, -50, 0],
+                }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full -z-10"
+            />
+            <motion.div
+                animate={{
+                    scale: [1.2, 1, 1.2],
+                    x: [0, -50, 0],
+                    y: [0, 30, 0],
+                }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-accent/10 blur-[100px] rounded-full -z-10"
+            />
 
             <AnimatePresence mode="wait">
                 {step === "checkin" && (
                     <motion.div
                         key="checkin"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="text-center max-w-md p-8"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-5 gap-8"
                     >
-                        <Brain className="w-16 h-16 mx-auto text-primary mb-6" />
-                        <h2 className="text-3xl font-bold mb-2 text-foreground">Mental State Check-in</h2>
-                        <p className="text-muted-foreground mb-8">How are you feeling right now? AI will adjust the session intensity.</p>
-
-                        <div className="grid grid-cols-2 gap-4 mb-8">
-                            {["Tired", "Anxious", "Neutral", "Flow"].map((m) => (
-                                <button
-                                    key={m}
-                                    onClick={() => handleMoodSelect(m)}
-                                    className={`p-4 rounded-xl border transition-all font-medium ${mood === m ? 'bg-primary border-primary text-primary-foreground shadow-lg' : 'bg-secondary/5 border-border hover:bg-secondary/10 text-muted-foreground hover:text-foreground'}`}
-                                >
-                                    {m}
-                                </button>
-                            ))}
-                        </div>
-
-                        {mood && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                <div className="mb-8 p-4 bg-secondary/5 rounded-xl border border-border">
-                                    <p className="text-sm text-muted-foreground font-bold">Recommended Session</p>
-                                    <div className="text-2xl font-bold text-foreground">{duration} Minutes</div>
-                                    <p className="text-xs text-primary mt-1 font-bold">{mood === "Flow" ? "Deep Work Mode" : "Refresh Mode"}</p>
-                                </div>
+                        {/* Left Side: Goal & Duration */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="bg-card/40 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl h-full flex flex-col justify-center">
                                 <div className="mb-8">
-                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 block text-left">Your Session Goal</label>
-                                    <input
-                                        type="text"
-                                        value={sessionGoal}
-                                        onChange={(e) => setSessionGoal(e.target.value)}
-                                        placeholder="e.g., Coding Authentication Flow"
-                                        className="w-full p-4 rounded-xl bg-secondary/5 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium text-foreground"
-                                    />
+                                    <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-2">Deep Focus.</h1>
+                                    <p className="text-muted-foreground font-medium">Choose your state and define your purpose.</p>
                                 </div>
 
-                                <button onClick={startSession} className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-full hover:scale-105 transition-transform shadow-lg">
-                                    Start Session
-                                </button>
+                                <div className="space-y-6">
+                                    <div className="relative group">
+                                        <div className="absolute inset-0 bg-primary/5 rounded-3xl blur-xl group-focus-within:bg-primary/10 transition-all" />
+                                        <textarea
+                                            value={sessionGoal}
+                                            onChange={(e) => setSessionGoal(e.target.value)}
+                                            placeholder="What is your mission?"
+                                            className="relative w-full bg-[#0a0a0b]/60 border border-white/5 p-6 rounded-3xl min-h-[140px] focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all text-xl font-bold tracking-tight text-foreground placeholder:text-muted-foreground/30 resize-none shadow-inner"
+                                        />
+                                        <div className="absolute bottom-4 right-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 px-2 py-1 bg-white/5 rounded-lg border border-white/10">Goal</div>
+                                    </div>
 
-                                <div className="mt-6 p-4 rounded-xl border border-border bg-secondary/5 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${isPermissionsGranted ? 'bg-green-500/10 text-green-500' : 'bg-muted text-muted-foreground'}`}>
-                                            <Activity className="w-4 h-4" />
+                                    <div className="p-6 bg-[#0a0a0b]/40 rounded-3xl border border-white/5 flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center">
+                                                <Activity className="w-6 h-6 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">Focus Duration</p>
+                                                <p className="text-2xl font-black text-foreground">{duration} <span className="text-sm font-bold text-muted-foreground opacity-50 uppercase tracking-widest">MIN</span></p>
+                                            </div>
                                         </div>
-                                        <div className="text-left">
-                                            <p className="text-xs font-bold text-foreground">Advanced Activity Check</p>
-                                            <p className="text-[10px] text-muted-foreground">Require permissions for focus monitoring</p>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setDuration(Math.max(5, duration - 5))} className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-white">-</button>
+                                            <button onClick={() => setDuration(Math.min(120, duration + 5))} className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-white">+</button>
                                         </div>
                                     </div>
+
                                     <button
-                                        onClick={() => setIsPermissionsGranted(!isPermissionsGranted)}
-                                        className={`w-10 h-6 rounded-full transition-colors relative ${isPermissionsGranted ? 'bg-primary' : 'bg-muted'}`}
+                                        onClick={handleStart}
+                                        className="group relative w-full py-6 bg-primary text-primary-foreground font-black text-xl rounded-3xl overflow-hidden shadow-[0_20px_40px_rgba(var(--primary-rgb),0.3)] hover:shadow-primary/40 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
                                     >
-                                        <motion.div
-                                            animate={{ x: isPermissionsGranted ? 18 : 2 }}
-                                            className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
-                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                        <Play className="w-6 h-6 fill-current" />
+                                        <span>INITIATE TRACKER</span>
                                     </button>
                                 </div>
-                            </motion.div>
-                        )}
+                            </div>
+                        </div>
+
+                        {/* Right Side: Mental State Grid */}
+                        <div className="lg:col-span-3">
+                            <div className="grid grid-cols-2 gap-4 h-full">
+                                {moods.map((m) => (
+                                    <button
+                                        key={m.name}
+                                        onClick={() => handleMoodSelect(m.name as MentalState)}
+                                        className={`relative group h-full flex flex-col p-8 rounded-[3rem] border transition-all text-left overflow-hidden ${mood === m.name ? `bg-gradient-to-br ${m.color} ${m.border} shadow-2xl` : 'bg-card/30 border-white/5 hover:border-white/20'}`}
+                                    >
+                                        <div className="mb-auto flex justify-between items-start">
+                                            <div className={`w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center transition-all ${mood === m.name ? 'scale-110 shadow-lg' : 'group-hover:scale-105'}`}>
+                                                <m.icon className={`w-7 h-7 ${mood === m.name ? 'text-primary' : 'text-muted-foreground/50'}`} />
+                                            </div>
+                                            {mood === m.name && (
+                                                <div className="bg-primary/20 text-primary-foreground px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/30">Active</div>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-8">
+                                            <h3 className={`text-2xl font-black mb-1 transition-colors ${mood === m.name ? 'text-foreground' : 'text-muted-foreground'}`}>{m.name}</h3>
+                                            <p className="text-xs text-muted-foreground mb-4 font-bold opacity-60 tracking-tight">{m.description}</p>
+                                            <div className={`inline-flex px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] ${mood === m.name ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white/5 border-white/10 text-muted-foreground/60'}`}>
+                                                {m.multiplier}
+                                            </div>
+                                        </div>
+
+                                        {mood === m.name && (
+                                            <motion.div layoutId="glow" className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/20 blur-[60px] rounded-full -z-10" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </motion.div>
                 )}
-
-                {/* Mindful Return Modal */}
-                <AnimatePresence>
-                    {showMindfulReturn && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-md flex items-center justify-center p-6"
-                        >
-                            <motion.div
-                                initial={{ scale: 0.9, y: 20 }}
-                                animate={{ scale: 1, y: 0 }}
-                                className="bg-card border border-border p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center"
-                            >
-                                <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
-                                    <Brain className="w-8 h-8" />
-                                </div>
-                                <h3 className="text-2xl font-bold mb-2">Accountability Check</h3>
-                                <p className="text-muted-foreground text-sm mb-6">
-                                    You were away for <span className="text-foreground font-bold">{awayDuration}s</span>.
-                                    Was this for <span className="text-primary font-bold">research ({sessionGoal})</span> or a distraction?
-                                </p>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button
-                                        onClick={() => {
-                                            setShowMindfulReturn(false);
-                                            setIsActive(true);
-                                        }}
-                                        className="py-3 rounded-xl bg-secondary/10 border border-border hover:bg-secondary/20 font-bold transition-all flex flex-col items-center justify-center gap-1"
-                                    >
-                                        <span className="text-sm">Research</span>
-                                        <span className="text-[10px] opacity-70">No Penalty</span>
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setDistractions(prev => prev + 1);
-                                            setShowMindfulReturn(false);
-                                            setIsActive(true);
-                                        }}
-                                        className="py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all flex flex-col items-center justify-center gap-1 shadow-lg shadow-red-500/20"
-                                    >
-                                        <span className="text-sm">Distracted</span>
-                                        <span className="text-[10px] opacity-90">-5 XP Penalty</span>
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
                 {step === "timer" && (
                     <motion.div
                         key="timer"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
+                        initial={{ opacity: 0, scale: 1.1 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0 }}
-                        className="text-center w-full h-full flex flex-col items-center justify-center relative"
+                        className="text-center w-full h-full flex flex-col items-center justify-center p-10 relative"
                     >
-                        {/* Ambient Background */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-background pointer-events-none"></div>
-
-                        <h2 className="text-muted-foreground font-bold tracking-widest uppercase mb-8">Focus Mode Active</h2>
-
-                        <div className="text-[12rem] font-bold leading-none tracking-tighter tabular-nums text-foreground">
-                            {formatTime(timeLeft)}
+                        {/* Mode Indicator Overlay */}
+                        <div className="absolute top-12 flex flex-col items-center gap-4">
+                            <div className="flex items-center gap-3 px-6 py-2 bg-secondary/10 backdrop-blur-2xl border border-white/5 rounded-full shadow-2xl">
+                                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                                <span className="text-[11px] font-black text-foreground uppercase tracking-[0.4em]">{mood} Mode Active</span>
+                            </div>
+                            <h2 className="text-xl font-bold text-muted-foreground/60 tracking-tight italic">"{sessionGoal}"</h2>
                         </div>
 
-                        {distractions > 0 && (
-                            <div className="absolute top-8 right-8 flex items-center gap-2 text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-500/10 px-4 py-2 rounded-full border border-yellow-200 dark:border-yellow-500/20 animate-pulse">
-                                <AlertTriangle className="w-4 h-4" />
-                                <span className="text-sm font-bold">{distractions} Distractions</span>
-                            </div>
-                        )}
+                        {/* Large Minimal Timer */}
+                        <div className="relative group flex items-center justify-center">
+                            <motion.div
+                                animate={{ scale: isActive ? [1, 1.01, 1] : 1, opacity: isActive ? [0.8, 1, 0.8] : 1 }}
+                                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                className="text-[22vw] lg:text-[18rem] font-black leading-none tracking-tighter tabular-nums text-foreground flex items-baseline gap-2"
+                                style={{
+                                    textShadow: "0 0 80px rgba(var(--primary-rgb), 0.15)",
+                                    WebkitTextStroke: "1px rgba(255,255,255,0.05)"
+                                }}
+                            >
+                                {formatTime(timeLeft)}
+                            </motion.div>
+                        </div>
 
-                        <div className="flex items-center gap-6 mt-12 relative z-10">
-                            <button onClick={() => setIsActive(!isActive)} className="p-6 rounded-full bg-secondary/10 border border-border hover:bg-secondary/20 text-foreground transition-all">
-                                {isActive ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
+                        {/* Controls Bar */}
+                        <div className="flex items-center gap-12 mt-12 bg-white/5 backdrop-blur-3xl px-12 py-8 rounded-[4rem] border border-white/10 shadow-2xl">
+                            <button
+                                onClick={() => setIsActive(!isActive)}
+                                className={`w-24 h-24 rounded-full flex items-center justify-center transition-all active:scale-90 relative ${isActive ? 'bg-secondary/10 hover:bg-secondary/20 text-foreground' : 'bg-primary text-primary-foreground shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)]'}`}
+                            >
+                                {isActive ? <Pause className="w-10 h-10" /> : <Play className="w-10 h-10 fill-current ml-2" />}
                             </button>
-                            <button onClick={() => setStep("summary")} className="p-6 rounded-full bg-red-100 border border-red-200 hover:bg-red-200 text-red-600 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400 transition-all">
+                            <button
+                                onClick={abandonSession}
+                                className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-500 transition-all flex items-center justify-center active:scale-90"
+                            >
                                 <X className="w-8 h-8" />
                             </button>
                         </div>
@@ -287,25 +371,130 @@ export default function FocusSession() {
                         key="summary"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="text-center max-w-md p-8"
+                        className="text-center max-w-2xl w-full p-1 lg:p-12 relative"
                     >
-                        <CheckCircle className="w-20 h-20 mx-auto text-green-500 mb-6" />
-                        <h2 className="text-3xl font-bold mb-2 text-foreground">Session Complete!</h2>
-                        <p className="text-muted-foreground mb-4">You completed {duration} minutes of deep work.</p>
-
-                        <div className="bg-gradient-to-r from-primary/20 to-accent/20 p-6 rounded-2xl border border-primary/20 mb-8">
-                            <p className="text-sm text-primary font-bold mb-1">XP Earned</p>
-                            <div className="text-4xl font-bold text-foreground">+{xpEarned} XP</div>
-                            {distractions > 0 && <p className="text-xs text-red-500 mt-2 font-bold">-{distractions * 5} XP penalty for distractions</p>}
+                        {/* Background Celebration Sparkles */}
+                        <div className="absolute inset-0 -z-10 pointer-events-none">
+                            {[...Array(6)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, scale: 0 }}
+                                    animate={{
+                                        opacity: [0, 1, 0],
+                                        scale: [0, 1, 0.5],
+                                        x: Math.random() * 400 - 200,
+                                        y: Math.random() * 400 - 200
+                                    }}
+                                    transition={{
+                                        duration: 2 + Math.random() * 2,
+                                        repeat: Infinity,
+                                        delay: Math.random() * 2
+                                    }}
+                                    className="absolute left-1/2 top-1/2"
+                                >
+                                    <Sparkles className="w-6 h-6 text-primary/40" />
+                                </motion.div>
+                            ))}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <button onClick={() => setStep("checkin")} className="py-3 rounded-xl bg-secondary/10 border border-border hover:bg-secondary/20 text-foreground transition-colors font-medium">
-                                New Session
-                            </button>
-                            <Link href="/dashboard" className="py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-colors flex items-center justify-center shadow-md">
-                                Dashboard
-                            </Link>
+                        <div className="bg-card/40 backdrop-blur-3xl border border-white/5 rounded-[4rem] shadow-2xl p-8 lg:p-12 relative overflow-hidden">
+                            {/* Decorative Glow */}
+                            <div className="absolute -top-24 -left-24 w-64 h-64 bg-primary/20 blur-[80px] rounded-full" />
+                            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-accent/20 blur-[80px] rounded-full" />
+
+                            <motion.div
+                                initial={{ y: -20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                                className="mx-auto w-24 h-24 bg-green-500/10 backdrop-blur-xl rounded-[2.5rem] border border-green-500/20 flex items-center justify-center shadow-2xl mb-8 group"
+                            >
+                                <CheckCircle className="w-12 h-12 text-green-500 group-hover:scale-110 transition-transform" />
+                            </motion.div>
+
+                            <div className="mb-12 relative">
+                                <motion.h2
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.3 }}
+                                    className="text-5xl lg:text-6xl font-black mb-4 text-foreground tracking-tighter"
+                                >
+                                    Session Complete
+                                </motion.h2>
+                                <motion.p
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="text-muted-foreground font-medium text-lg"
+                                >
+                                    Your focus has been forged into progress.
+                                </motion.p>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+                                <motion.div
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0.5 }}
+                                    className="relative group lg:col-span-1"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/20 to-primary/20 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative bg-[#0a0a0b]/60 backdrop-blur-2xl p-8 rounded-[3rem] border border-white/5 flex flex-col items-center group-hover:border-primary/30 transition-all overflow-hidden">
+                                        {/* Animated Shimmer Line */}
+                                        <motion.div
+                                            animate={{ x: ['100%', '-100%'] }}
+                                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                                            className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent"
+                                        />
+
+                                        <Zap className="w-10 h-10 text-primary mb-3 group-hover:animate-bounce" />
+                                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-2">Total Reward</span>
+                                        <div className="text-6xl font-black text-white tracking-tighter tabular-nums">
+                                            {xpEarned >= 0 ? "+" : ""}<Counter value={xpEarned} />
+                                        </div>
+                                        <span className="text-xs font-bold text-muted-foreground mt-2 uppercase tracking-widest opacity-40">Focus Forge XP</span>
+                                    </div>
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ x: 20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0.6 }}
+                                    className="relative group"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-emerald-500/20 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative bg-[#0a0a0b]/40 backdrop-blur-2xl border border-white/5 rounded-[3rem] p-8 flex flex-col items-center justify-center group-hover:border-secondary/30 transition-all">
+                                        <Clock className="w-10 h-10 text-secondary mb-3 group-hover:rotate-12 transition-transform" />
+                                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-2">Time Invested</span>
+                                        <div className="text-5xl font-black text-foreground">{duration}</div>
+                                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest opacity-40 mt-1">Minutes Captured</span>
+                                    </div>
+                                </motion.div>
+                            </div>
+
+                            <div className="flex flex-col gap-4 relative">
+                                <motion.div
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.7 }}
+                                >
+                                    <Link href="/dashboard" className="group relative w-full py-6 bg-white text-black font-black text-xl rounded-[2rem] overflow-hidden hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(255,255,255,0.1)]">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                                        <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                                        <span>RETURN TO DASHBOARD</span>
+                                    </Link>
+                                </motion.div>
+
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.9 }}
+                                    onClick={() => setStep("checkin")}
+                                    className="py-4 text-muted-foreground hover:text-primary font-bold transition-all hover:tracking-widest uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-2 group"
+                                >
+                                    <Brain className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all -ml-6 group-hover:ml-0" />
+                                    Initiate Another Cycle
+                                </motion.button>
+                            </div>
                         </div>
                     </motion.div>
                 )}
