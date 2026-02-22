@@ -169,8 +169,6 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
                 </button>
             </div>
 
-// ... imports ...
-
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCorners}

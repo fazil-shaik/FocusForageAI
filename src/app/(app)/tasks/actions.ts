@@ -41,6 +41,7 @@ export async function createTask(formData: FormData) {
     await redis.del(cacheKey);
 
     revalidatePath("/tasks");
+    revalidatePath("/dashboard");
 }
 
 export async function updateTaskStatus(taskId: string, status: string) {
@@ -57,6 +58,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
     await redis.del(cacheKey);
 
     revalidatePath("/tasks");
+    revalidatePath("/dashboard");
 }
 
 export async function deleteTask(taskId: string) {

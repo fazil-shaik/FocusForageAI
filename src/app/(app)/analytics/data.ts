@@ -56,29 +56,33 @@ export async function getAnalyticsData() {
     });
 
     // Calculate totals
-    const totalDeepWorkHours = await db
-        .select({ value: sql<number>`sum(${dailyStats.totalDeepWorkMinutes})` })
+    const totalDeepWorkResult = await db
+        .select({ value: sql`sum(${dailyStats.totalDeepWorkMinutes})` })
         .from(dailyStats)
         .where(eq(dailyStats.userId, session.user.id));
 
-    const totalSessions = await db
-        .select({ value: sql<number>`count(*)` })
+    const totalSessionsResult = await db
+        .select({ value: sql`count(*)` })
         .from(focusSessions)
         .where(eq(focusSessions.userId, session.user.id));
+
+    // Postgres SUM returns a string for bigints/decimals, cast to number
+    const totalDeepWorkMinutes = Number(totalDeepWorkResult[0]?.value || 0);
+    const totalSessions = Number(totalSessionsResult[0]?.value || 0);
 
     const userPlan = (session.user as any).plan || "free";
     let behavioralAnalysis = null;
 
     if (userPlan === "pro") {
-        behavioralAnalysis = await generatePatternAnalysis();
+        behavioralAnalysis = await generatePatternAnalysis(session.user.id);
     }
 
     return {
-        dailyStats: filledStats, // Correct order and filled
+        dailyStats: filledStats,
         recentSessions,
-        totalDeepWorkHours: Math.round((totalDeepWorkHours[0]?.value || 0) / 60),
-        totalSessions: totalSessions[0]?.value || 0,
-        averageMood: 7.5, // Placeholder/Calculated if needed
+        totalDeepWorkHours: Math.round(totalDeepWorkMinutes / 60),
+        totalSessions,
+        averageMood: 7.5,
         userPlan,
         behavioralAnalysis,
     };

@@ -2,11 +2,13 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { tasks } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { tasks, dailyStats, focusSessions } from "@/db/schema";
+import { eq, desc, and, sql } from "drizzle-orm";
 import { BrainCircuit, Target, CheckCircle, Zap } from "lucide-react";
 import Link from "next/link";
 import { FocusTimer } from "@/components/FocusTimer";
+import { DashboardControls } from "@/components/DashboardControls";
+import { generateDynamicInsight } from "./insights";
 
 import { redis } from "@/lib/redis";
 
@@ -22,31 +24,53 @@ interface SessionUser {
 }
 
 
+export const dynamic = "force-dynamic";
+
 async function getDashboardData() {
     const session = await auth.api.getSession({
         headers: await headers(),
     });
     if (!session) return null;
 
-    const cacheKey = `dashboard:recentTasks:${session.user.id}`;
-    const cachedTasks = await redis.get(cacheKey);
+    // Fetch metrics for AI insights
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
 
-    if (cachedTasks) {
-        console.log("CACHE HIT");
-        const tasks: Task[] = JSON.parse(cachedTasks);
-        return { session, recentTasks: tasks };
-    }
+    const [recentTasksData, stats, sessions] = await Promise.all([
+        db.query.tasks.findMany({
+            where: and(
+                eq(tasks.userId, session.user.id),
+                sql`${tasks.status} != 'done'`
+            ),
+            orderBy: [desc(tasks.createdAt)],
+            limit: 3,
+        }),
+        db.query.dailyStats.findMany({
+            where: and(
+                eq(dailyStats.userId, session.user.id),
+                sql`${dailyStats.date} >= ${sevenDaysAgoStr}`
+            ),
+            orderBy: [desc(dailyStats.date)],
+        }),
+        db.query.focusSessions.findMany({
+            where: and(
+                eq(focusSessions.userId, session.user.id),
+                eq(focusSessions.status, "completed")
+            ),
+            orderBy: [desc(focusSessions.startTime)],
+            limit: 10,
+        })
+    ]);
 
-    console.log("CACHE MISS");
-    const recentTasks = await db.query.tasks.findMany({
-        where: eq(tasks.userId, session.user.id),
-        orderBy: [desc(tasks.createdAt)],
-        limit: 3,
-    });
-
-    await redis.set(cacheKey, JSON.stringify(recentTasks), "EX", 300); // Cache for 5 minutes
-
-    return { session, recentTasks };
+    return {
+        session,
+        recentTasks: recentTasksData,
+        metrics: {
+            stats,
+            sessions
+        }
+    };
 }
 
 export default async function Dashboard() {
@@ -56,9 +80,16 @@ export default async function Dashboard() {
         redirect("/signin");
     }
 
-    const { session, recentTasks } = data;
+    const { session, recentTasks, metrics } = data;
     const user = session.user as SessionUser;
     const userFirstName = user.name?.split(" ")[0] || "User";
+
+    const aiInsight = await generateDynamicInsight({
+        userPlan: user.plan || "free",
+        userName: userFirstName,
+        metrics,
+        xp: user.xp || 0
+    });
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">
@@ -79,14 +110,7 @@ export default async function Dashboard() {
                         </span>
                     </p>
                 </div>
-                <div className="flex gap-4">
-                    <button className="px-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground hover:bg-secondary/10 transition-colors shadow-sm">
-                        Daily Report
-                    </button>
-                    <Link href="/tasks" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all shadow-md flex items-center">
-                        + New Task
-                    </Link>
-                </div>
+                <DashboardControls />
             </header>
 
             {/* Main Grid */}
@@ -99,24 +123,20 @@ export default async function Dashboard() {
                 <div className="space-y-6">
 
                     {/* AI Insight Card */}
-                    <div className="bg-card/50 rounded-2xl p-6 border-l-4 border-l-primary border border-border backdrop-blur-sm shadow-sm">
-                        <h3 className="text-sm font-bold text-muted-foreground mb-2 flex items-center gap-2">
-                            <BrainCircuit className="w-4 h-4 text-primary" /> AI Insight
-                        </h3>
-                        {session.user.plan === "pro" ? (
-                            <p className="text-sm leading-relaxed text-foreground">
-                                You tend to lose focus around <span className="text-primary font-bold">3:00 PM</span>. I've scheduled a high-dopamine break for 2:50 PM.
-                            </p>
-                        ) : (
-                            <div>
-                                <p className="text-sm leading-relaxed text-foreground mb-3 blur-sm select-none">
-                                    Your peak focus time is at 10:00 AM. We recommend scheduling deep work then.
-                                </p>
-                                <Link href="/pricing" className="block text-center text-xs font-bold text-primary hover:underline">
-                                    Upgrade to Pro to unlock AI insights
+                    <div className="bg-card/50 rounded-2xl p-6 border-l-4 border-l-primary border border-border backdrop-blur-sm shadow-sm hover:shadow-md transition-all group">
+                        <h3 className="text-sm font-bold text-muted-foreground mb-2 flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                                <BrainCircuit className="w-4 h-4 text-primary animate-pulse" /> AI Insight
+                            </span>
+                            {user.plan !== "pro" && (
+                                <Link href="/pricing" className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors">
+                                    Unlock Pro ⚡
                                 </Link>
-                            </div>
-                        )}
+                            )}
+                        </h3>
+                        <p className="text-sm leading-relaxed text-foreground font-medium italic">
+                            "{aiInsight}"
+                        </p>
                     </div>
 
                     {/* Task List Preview */}

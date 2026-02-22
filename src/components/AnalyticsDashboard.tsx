@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Grid, Clock, Zap, Activity, Brain } from "lucide-react";
+import Link from "next/link";
 
 
 type AnalyticsData = {
@@ -133,78 +134,102 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                     )}
                 </div>
 
-                <div className={data.userPlan === 'pro' ? '' : 'blur-sm select-none opacity-50 pointer-events-none'}>
+                <div className={data.userPlan === 'pro' ? '' : 'blur-md select-none opacity-50 pointer-events-none'}>
                     {data.behavioralAnalysis ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <h4 className="font-bold text-sm text-muted-foreground mb-4">Detected Patterns</h4>
-                                <ul className="space-y-2 mb-6">
-                                    {data.behavioralAnalysis.patterns.map((p, i) => (
-                                        <li key={i} className="text-sm flex items-start gap-2">
-                                            <span className="text-red-500 font-bold">•</span>
-                                            {p}
-                                        </li>
-                                    ))}
-                                </ul>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-0">
+                            <div className="space-y-6">
+                                <div>
+                                    <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                        Detected Patterns
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {data.behavioralAnalysis.patterns.map((p, i) => (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: i * 0.1 }}
+                                                key={i}
+                                                className="text-sm p-3 rounded-xl bg-secondary/5 border border-border/50 hover:border-primary/20 transition-colors"
+                                            >
+                                                {p}
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </div>
 
-                                <h4 className="font-bold text-sm text-muted-foreground mb-4">Triggers</h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {data.behavioralAnalysis.triggers.map((t, i) => (
-                                        <span key={i} className="px-3 py-1 bg-secondary/10 rounded-full text-xs font-medium border border-border">
-                                            {t}
-                                        </span>
-                                    ))}
+                                <div>
+                                    <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                                        Primary Triggers
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {data.behavioralAnalysis.triggers.map((t, i) => (
+                                            <span key={i} className="px-4 py-1.5 bg-accent/10 text-accent rounded-full text-xs font-bold border border-accent/20">
+                                                {t}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <h4 className="font-bold text-sm text-muted-foreground mb-4">Correction Strategy</h4>
-                                <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10">
-                                    <p className="text-xs text-primary font-bold mb-2 uppercase tracking-wide">Psychological Factor: {data.behavioralAnalysis.psychologicalFactor}</p>
-                                    <ol className="list-decimal list-inside space-y-2 text-sm">
+                            <div className="space-y-6">
+                                <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <Brain className="w-24 h-24" />
+                                    </div>
+                                    <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-4">Correction Strategy</h4>
+                                    <p className="text-xs font-bold text-primary/60 mb-4 bg-primary/10 w-fit px-3 py-1 rounded-full">
+                                        Factor: {data.behavioralAnalysis.psychologicalFactor}
+                                    </p>
+                                    <ol className="space-y-4">
                                         {data.behavioralAnalysis.strategy.map((s, i) => (
-                                            <li key={i} className="text-foreground">{s}</li>
+                                            <li key={i} className="flex gap-4">
+                                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
+                                                    {i + 1}
+                                                </span>
+                                                <p className="text-sm text-foreground leading-relaxed">{s}</p>
+                                            </li>
                                         ))}
                                     </ol>
                                 </div>
-                                <div className="mt-4 flex items-center justify-between p-3 bg-secondary/5 rounded-xl border border-border">
-                                    <span className="text-sm font-medium">Risk Level Next Week</span>
-                                    <span className={`text-sm font-bold px-3 py-1 rounded-full ${data.behavioralAnalysis.riskLevel === 'High' ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>
-                                        {data.behavioralAnalysis.riskLevel}
-                                    </span>
+
+                                <div className="flex items-center justify-between p-4 bg-secondary/5 rounded-2xl border border-border/50">
+                                    <div>
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Next Week Forecast</p>
+                                        <p className="text-sm font-medium text-foreground">Projected Procrastination Risk</p>
+                                    </div>
+                                    <div className={`px-4 py-2 rounded-xl text-xs font-bold shadow-sm ${data.behavioralAnalysis.riskLevel === 'High'
+                                        ? 'bg-red-500/20 text-red-500 border border-red-500/30'
+                                        : data.behavioralAnalysis.riskLevel === 'Medium'
+                                            ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30'
+                                            : 'bg-green-500/20 text-green-500 border border-green-500/30'
+                                        }`}>
+                                        {data.behavioralAnalysis.riskLevel} Risk
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <h4 className="font-bold text-sm text-muted-foreground mb-4">Distraction Triggers</h4>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between text-sm">
-                                        <span>Social Media (Afternoon)</span>
-                                        <span className="font-bold text-red-500">High Risk</span>
-                                    </div>
-                                    <div className="w-full bg-secondary/20 h-2 rounded-full">
-                                        <div className="bg-red-500 h-2 rounded-full w-[80%]"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-sm text-muted-foreground mb-4">Mood Correlation</h4>
-                                <p className="text-sm leading-relaxed text-foreground">
-                                    Your focus is <span className="font-bold text-green-500">2x higher</span> when you start with a "Flow" mood check-in.
-                                </p>
-                            </div>
+                        <div className="animate-pulse space-y-4">
+                            <div className="h-4 bg-secondary/20 rounded w-1/4"></div>
+                            <div className="h-20 bg-secondary/10 rounded-2xl"></div>
+                            <div className="h-20 bg-secondary/10 rounded-2xl"></div>
                         </div>
                     )}
                 </div>
 
                 {data.userPlan !== 'pro' && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/50 backdrop-blur-[1px]">
-                        <div className="text-center">
-                            <h4 className="text-xl font-bold mb-2">Unlock Deep Insights</h4>
-                            <p className="text-muted-foreground text-sm mb-4">Understand your behavioral patterns with Pro.</p>
-                            {/* Link would go here, but component is client side, simple text for now or passed link */}
+                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/40 backdrop-blur-md">
+                        <div className="text-center p-8 bg-card border border-border rounded-3xl shadow-2xl max-w-sm">
+                            <div className="w-16 h-16 bg-primary/20 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <Zap className="w-8 h-8" />
+                            </div>
+                            <h4 className="text-2xl font-bold mb-2">Neural Insights Locked</h4>
+                            <p className="text-muted-foreground text-sm mb-6">Upgrade to Pro to unlock advanced behavioral patterns and AI-driven correction strategies.</p>
+                            <Link href="/pricing" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+                                Unlock Pro ⚡
+                            </Link>
                         </div>
                     </div>
                 )}
