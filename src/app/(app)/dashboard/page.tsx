@@ -134,21 +134,35 @@ export default async function Dashboard() {
                 <div className="space-y-6">
 
                     {/* AI Insight Card */}
-                    <div className="bg-card/40 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl hover:shadow-primary/5 transition-all group relative overflow-hidden">
+                    <div className="bg-card/40 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl hover:shadow-primary/5 transition-all group relative overflow-hidden h-full">
                         <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-accent"></div>
-                        <h3 className="text-xs font-black text-muted-foreground mb-3 flex items-center justify-between uppercase tracking-widest">
+                        <h3 className="text-xs font-black text-muted-foreground mb-4 flex items-center justify-between uppercase tracking-widest">
                             <span className="flex items-center gap-2">
                                 <BrainCircuit className="w-4 h-4 text-primary animate-pulse" /> AI Insight
                             </span>
                             {user.plan !== "pro" && (
-                                <Link href="/pricing" className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors">
-                                    Unlock Pro ⚡
+                                <Link href="/pricing" className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors shadow-sm">
+                                    PRO
                                 </Link>
                             )}
                         </h3>
-                        <p className="text-sm leading-relaxed text-foreground font-medium italic opacity-90">
-                            "{aiInsight}"
-                        </p>
+
+                        {user.plan === "pro" ? (
+                            <p className="text-sm leading-relaxed text-foreground font-medium italic opacity-90 group-hover:opacity-100 transition-opacity">
+                                "{aiInsight}"
+                            </p>
+                        ) : (
+                            <div className="relative">
+                                <p className="text-sm leading-relaxed text-foreground/50 font-medium italic blur-[2px] select-none">
+                                    "Your neuro-activity suggests a peak in focus during afternoon sessions. Recommendation: Schedule high-complexity tasks between 2 PM and 4 PM..."
+                                </p>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Link href="/pricing" className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1 rounded-lg border border-primary/20 hover:bg-primary/20 transition-all opacity-0 group-hover:opacity-100">
+                                        REVEAL INSIGHT ⚡
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Task List Preview */}

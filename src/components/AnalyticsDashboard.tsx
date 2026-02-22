@@ -1,9 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Grid, Clock, Zap, Activity, Brain } from "lucide-react";
+import { Grid, Clock, Zap, Activity, Brain, Sparkles } from "lucide-react";
 import Link from "next/link";
-
 
 type AnalyticsData = {
     dailyStats: any[];
@@ -125,49 +124,61 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
             </div>
 
             {/* Behavioral Analysis (Pro Feature) */}
-            <div className="bg-card border border-border rounded-3xl p-6 backdrop-blur-sm shadow-sm relative overflow-hidden">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
-                        <Brain className="w-5 h-5 text-accent" />
-                        Behavioral Analysis
-                    </h3>
-                    {data.userPlan !== 'pro' && (
-                        <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-1 rounded-full">PRO</span>
+            <div className="bg-card border border-border rounded-3xl p-8 backdrop-blur-sm shadow-sm relative overflow-hidden">
+                <div className="flex justify-between items-center mb-10">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-accent/10 rounded-2xl">
+                            <Brain className="w-6 h-6 text-accent" />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-black text-foreground tracking-tight">Behavioral Analysis</h3>
+                            <p className="text-sm text-muted-foreground font-medium">AI-powered cognitive pattern mapping</p>
+                        </div>
+                    </div>
+                    {data.userPlan !== 'pro' ? (
+                        <div className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">
+                            <Zap className="w-3.5 h-3.5 fill-current" />
+                            PRO Access
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 px-4 py-1.5 bg-secondary/10 text-secondary border border-secondary/20 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            Live Analysis
+                        </div>
                     )}
                 </div>
 
-                <div className={data.userPlan === 'pro' ? '' : 'blur-md select-none opacity-50 pointer-events-none'}>
+                <div className={data.userPlan === 'pro' ? '' : 'blur-xl select-none opacity-40 pointer-events-none'}>
                     {data.behavioralAnalysis ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-0">
-                            <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-0">
+                            <div className="space-y-8">
                                 <div>
-                                    <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                        Detected Patterns
+                                    <h4 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                                        Focus Patterns
                                     </h4>
-                                    <div className="space-y-3">
+                                    <div className="grid gap-4">
                                         {data.behavioralAnalysis.patterns.map((p, i) => (
                                             <motion.div
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.1 }}
                                                 key={i}
-                                                className="text-sm p-3 rounded-xl bg-secondary/5 border border-border/50 hover:border-primary/20 transition-colors"
+                                                className="text-sm p-5 rounded-2xl bg-secondary/5 border border-white/5 hover:border-primary/20 hover:bg-secondary/10 transition-all flex items-start gap-4 group"
                                             >
-                                                {p}
+                                                <div className="w-2 h-2 rounded-full bg-primary mt-1.5 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+                                                <p className="text-foreground/90 font-medium leading-relaxed">{p}</p>
                                             </motion.div>
                                         ))}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                                        Primary Triggers
+                                    <h4 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em] mb-6">
+                                        Environmental Triggers
                                     </h4>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-3">
                                         {data.behavioralAnalysis.triggers.map((t, i) => (
-                                            <span key={i} className="px-4 py-1.5 bg-accent/10 text-accent rounded-full text-xs font-bold border border-accent/20">
+                                            <span key={i} className="px-6 py-2.5 bg-accent/5 text-accent rounded-2xl text-xs font-black border border-accent/10 hover:bg-accent/10 transition-colors cursor-default capitalize tracking-wide">
                                                 {t}
                                             </span>
                                         ))}
@@ -175,61 +186,70 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
-                                <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                        <Brain className="w-24 h-24" />
+                            <div className="space-y-8">
+                                <div className="bg-primary/5 rounded-[2.5rem] p-10 border border-primary/10 relative overflow-hidden group min-h-[300px]">
+                                    <div className="absolute -top-12 -right-12 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <Brain className="w-64 h-64" />
                                     </div>
-                                    <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-4">Correction Strategy</h4>
-                                    <p className="text-xs font-bold text-primary/60 mb-4 bg-primary/10 w-fit px-3 py-1 rounded-full">
-                                        Factor: {data.behavioralAnalysis.psychologicalFactor}
-                                    </p>
-                                    <ol className="space-y-4">
+                                    <h4 className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-8">Optimization Strategy</h4>
+                                    <div className="mb-8">
+                                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest block mb-3">Dominant Factor</span>
+                                        <span className="text-sm font-bold text-primary bg-primary/10 px-5 py-2 rounded-2xl border border-primary/20">
+                                            {data.behavioralAnalysis.psychologicalFactor}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-6">
                                         {data.behavioralAnalysis.strategy.map((s, i) => (
-                                            <li key={i} className="flex gap-4">
-                                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
+                                            <motion.div
+                                                key={i}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: 0.5 + (i * 0.1) }}
+                                                className="flex gap-5"
+                                            >
+                                                <span className="flex-shrink-0 w-10 h-10 rounded-2xl bg-primary/20 text-primary flex items-center justify-center text-sm font-black border border-primary/10">
                                                     {i + 1}
                                                 </span>
-                                                <p className="text-sm text-foreground leading-relaxed">{s}</p>
-                                            </li>
+                                                <p className="text-sm text-foreground/80 leading-relaxed font-medium pt-2">{s}</p>
+                                            </motion.div>
                                         ))}
-                                    </ol>
+                                    </div>
                                 </div>
 
-                                <div className="flex items-center justify-between p-4 bg-secondary/5 rounded-2xl border border-border/50">
+                                <div className="flex items-center justify-between p-6 bg-secondary/5 rounded-3xl border border-white/5">
                                     <div>
-                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Next Week Forecast</p>
-                                        <p className="text-sm font-medium text-foreground">Projected Procrastination Risk</p>
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Next Week Forecast</p>
+                                        <p className="text-base font-bold text-foreground">Projected Procrastination Risk</p>
                                     </div>
-                                    <div className={`px-4 py-2 rounded-xl text-xs font-bold shadow-sm ${data.behavioralAnalysis.riskLevel === 'High'
+                                    <div className={`px-6 py-3 rounded-2xl text-xs font-black shadow-lg ${data.behavioralAnalysis.riskLevel === 'High'
                                         ? 'bg-red-500/20 text-red-500 border border-red-500/30'
                                         : data.behavioralAnalysis.riskLevel === 'Medium'
                                             ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30'
                                             : 'bg-green-500/20 text-green-500 border border-green-500/30'
                                         }`}>
-                                        {data.behavioralAnalysis.riskLevel} Risk
+                                        {data.behavioralAnalysis.riskLevel.toUpperCase()} RISK
                                     </div>
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="animate-pulse space-y-4">
+                        <div className="animate-pulse space-y-6">
                             <div className="h-4 bg-secondary/20 rounded w-1/4"></div>
-                            <div className="h-20 bg-secondary/10 rounded-2xl"></div>
-                            <div className="h-20 bg-secondary/10 rounded-2xl"></div>
+                            <div className="h-32 bg-secondary/10 rounded-3xl"></div>
+                            <div className="h-48 bg-secondary/10 rounded-3xl"></div>
                         </div>
                     )}
                 </div>
 
                 {data.userPlan !== 'pro' && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/40 backdrop-blur-md">
-                        <div className="text-center p-8 bg-card border border-border rounded-3xl shadow-2xl max-w-sm">
-                            <div className="w-16 h-16 bg-primary/20 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <Zap className="w-8 h-8" />
+                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/20 backdrop-blur-xl transition-all">
+                        <div className="text-center p-10 bg-card/80 border border-white/10 rounded-[3rem] shadow-[0_32px_64px_rgba(0,0,0,0.4)] max-w-sm backdrop-blur-2xl">
+                            <div className="w-20 h-20 bg-primary/20 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <Zap className="w-10 h-10 fill-current" />
                             </div>
-                            <h4 className="text-2xl font-bold mb-2">Neural Insights Locked</h4>
-                            <p className="text-muted-foreground text-sm mb-6">Upgrade to Pro to unlock advanced behavioral patterns and AI-driven correction strategies.</p>
-                            <Link href="/pricing" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+                            <h4 className="text-3xl font-black mb-3 tracking-tight">Neural Insights Locked</h4>
+                            <p className="text-muted-foreground text-sm font-medium mb-8 leading-relaxed">Upgrade to Pro to unlock advanced behavioral patterns and AI-driven correction strategies.</p>
+                            <Link href="/pricing" className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-primary-foreground font-black rounded-2xl hover:scale-105 transition-all shadow-xl shadow-primary/30 active:scale-95">
                                 Unlock Pro ⚡
                             </Link>
                         </div>
@@ -244,15 +264,15 @@ function MetricCard({ title, value, icon, trend }: { title: string, value: strin
     return (
         <motion.div
             whileHover={{ y: -5 }}
-            className="bg-card border border-border p-5 rounded-3xl backdrop-blur-sm shadow-sm"
+            className="bg-card border border-border p-6 rounded-3xl backdrop-blur-sm shadow-sm group hover:border-primary/20 transition-all"
         >
-            <div className="flex justify-between items-start mb-4">
-                <div className="p-2 bg-secondary/10 rounded-2xl text-secondary">{icon}</div>
-                <span className="text-xs font-bold text-green-600 bg-green-500/10 px-2 py-1 rounded-full">{trend}</span>
+            <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-secondary/10 rounded-2xl text-secondary group-hover:scale-110 transition-transform">{icon}</div>
+                <span className="text-[10px] font-bold text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">{trend}</span>
             </div>
             <div>
-                <p className="text-muted-foreground text-sm mb-1 font-bold">{title}</p>
-                <p className="text-2xl font-bold text-foreground">{value}</p>
+                <p className="text-muted-foreground text-xs mb-1 font-black uppercase tracking-widest">{title}</p>
+                <p className="text-3xl font-black text-foreground tracking-tight">{value}</p>
             </div>
         </motion.div>
     );

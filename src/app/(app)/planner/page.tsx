@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Loader2, Sparkles, Clock, Battery, ListTodo } from "lucide-react";
-import { savePlanToTasks } from "./actions";
+import { useState, useEffect } from "react";
+import { Loader2, Sparkles, Clock, Battery, ListTodo, Zap } from "lucide-react";
+import { savePlanToTasks, getPlannerCredits } from "./actions";
 import { toast } from "sonner";
 
 export default function PlannerPage() {
@@ -11,8 +11,14 @@ export default function PlannerPage() {
     const [energyLevel, setEnergyLevel] = useState("High");
     const [loading, setLoading] = useState(false);
     const [plan, setPlan] = useState<any>(null);
+    const [credits, setCredits] = useState<{ count: number, total: number, plan: string } | null>(null);
+
+    useEffect(() => {
+        getPlannerCredits().then(setCredits);
+    }, []);
 
     const handleGenerate = async () => {
+        // ... existing handleGenerate code
         setLoading(true);
         try {
             const taskList = tasks.split("\n").filter(t => t.trim().length > 0);
@@ -37,13 +43,23 @@ export default function PlannerPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            <header>
-                <h1 className="text-3xl font-bold text-foreground">
-                    AI Deep Work Architect
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                    Input your tasks and let AI build your perfect flow state schedule.
-                </p>
+            <header className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-black text-foreground tracking-tight">
+                        AI Deep Work Architect
+                    </h1>
+                    <p className="text-muted-foreground mt-2 font-medium">
+                        Input your tasks and let AI build your perfect flow state schedule.
+                    </p>
+                </div>
+                {credits && (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-2xl backdrop-blur-sm shadow-sm group hover:scale-105 transition-transform cursor-default">
+                        <Zap className="w-4 h-4 text-primary fill-current" />
+                        <span className="text-xs font-black text-primary tracking-widest uppercase">
+                            {credits.plan === 'pro' ? 'Unlimited' : `${credits.count}/${credits.total}`} Credits
+                        </span>
+                    </div>
+                )}
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -139,6 +155,8 @@ export default function PlannerPage() {
                                     try {
                                         await savePlanToTasks(plan);
                                         toast.success("Plan saved to tasks!");
+                                        const newCredits = await getPlannerCredits();
+                                        setCredits(newCredits);
                                     } catch (error: any) {
                                         if (error.message.includes("LIMIT_REACHED")) {
                                             toast.error("Daily planning limit reached. Upgrade to Pro!");

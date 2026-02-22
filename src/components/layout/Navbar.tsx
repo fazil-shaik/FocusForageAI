@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { authClient } from "@/lib/auth-client";
-import { Loader2, User } from "lucide-react";
+import { Loader2, User, Brain } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function Navbar() {
@@ -23,8 +23,11 @@ export function Navbar() {
     return (
         <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                <Link href="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-                    FocusForge AI
+                <Link href="/" className="flex items-center gap-2 group">
+                    <div className="p-1 w-10 h-10 bg-primary/10 rounded-xl group-hover:scale-110 transition-transform flex items-center justify-center">
+                        <Brain className="w-6 h-6 text-primary fill-primary/20" />
+                    </div>
+                    <span className="font-black text-xl tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">FocusForge AI</span>
                 </Link>
 
                 {/* Desktop Nav */}

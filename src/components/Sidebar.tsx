@@ -36,9 +36,11 @@ export function Sidebar({ user }: SidebarProps) {
 
     return (
         <aside className="w-20 md:w-64 border-r border-border flex flex-col fixed h-full bg-card/80 backdrop-blur-xl z-50 transition-all">
-            <div className="h-16 flex items-center justify-center md:justify-start md:px-6 border-b border-border">
-                <Brain className="w-8 h-8 text-primary" />
-                <span className="ml-3 font-bold text-lg hidden md:block text-foreground">FocusForge</span>
+            <div className="h-20 flex items-center justify-center md:justify-start md:px-6 border-b border-border/50">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-primary fill-primary/20" />
+                </div>
+                <span className="ml-3 font-black text-lg hidden md:block text-foreground tracking-tight">FocusForge</span>
             </div>
 
             <nav className="flex-1 py-6 space-y-2 px-2 md:px-4">

@@ -56,3 +56,34 @@ export async function savePlanToTasks(plan: any) {
 
     redirect("/tasks");
 }
+
+export async function getPlannerCredits() {
+    const session = await getSession();
+    if (!session) return { count: 0, total: 1, plan: 'free' };
+
+    const { eq, and, sql } = await import("drizzle-orm");
+    const { users, tasks: taskTable } = await import("@/db/schema");
+
+    const user = await db.query.users.findFirst({
+        where: eq(users.id, session.user.id),
+    });
+
+    if (user?.plan === "pro") {
+        return { count: Infinity, total: Infinity, plan: 'pro' };
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+    const plannerTask = await db.query.tasks.findFirst({
+        where: and(
+            eq(taskTable.userId, session.user.id),
+            sql`DATE(${taskTable.createdAt}) = ${today}`,
+            sql`${taskTable.description} LIKE '%[Scheduled: %'`
+        )
+    });
+
+    return {
+        count: plannerTask ? 0 : 1,
+        total: 1,
+        plan: 'free'
+    };
+}

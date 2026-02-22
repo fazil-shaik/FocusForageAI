@@ -60,10 +60,10 @@ export function TopNav({ user }: TopNavProps) {
                     {/* Brand */}
                     <div className="flex items-center gap-8">
                         <Link href="/dashboard" className="flex items-center gap-2 group">
-                            <div className="p-1.5 bg-primary/10 rounded-xl group-hover:scale-110 transition-transform">
-                                <Brain className="w-6 h-6 text-primary" />
+                            <div className="p-1 w-10 h-10 bg-primary/10 rounded-xl group-hover:scale-110 transition-transform flex items-center justify-center">
+                                <Brain className="w-6 h-6 text-primary fill-primary/20" />
                             </div>
-                            <span className="font-bold text-xl tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">FocusForge</span>
+                            <span className="font-black text-xl tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">FocusForge</span>
                         </Link>
 
                         {/* Desktop Navigation */}

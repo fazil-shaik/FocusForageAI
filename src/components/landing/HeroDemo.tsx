@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useAnimation } from "framer-motion";
-import { Play, CheckCircle, Plus, BrainCircuit, MousePointer2, LayoutDashboard, ListTodo, BarChart3, Calendar, TrendingUp, Zap, Activity, CreditCard, Lock, User, ArrowRight, ShieldCheck } from "lucide-react";
+import { motion, useAnimation, AnimatePresence } from "framer-motion";
+import { Play, CheckCircle, Plus, Brain, MousePointer2, LayoutDashboard, ListTodo, BarChart3, Calendar, TrendingUp, Zap, Activity, CreditCard, Lock, User, ArrowRight, ShieldCheck, Clock, Target } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 export function HeroDemo() {
@@ -12,13 +12,12 @@ export function HeroDemo() {
         { id: 1, title: "Design Landing Page", priority: "High", status: "todo" },
         { id: 2, title: "Implement Auth Flow", priority: "Medium", status: "todo" },
     ]);
-    const [inputValue, setInputValue] = useState(""); // For Task input
+    const [inputValue, setInputValue] = useState("");
     const [emailInput, setEmailInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [showModal, setShowModal] = useState(false);
-    const [isPro, setIsPro] = useState(false);
 
-    // Interaction States for hover effects
+    // Interaction States
     const [hoveredElement, setHoveredElement] = useState<string | null>(null);
 
     // Animation controls
@@ -52,104 +51,66 @@ export function HeroDemo() {
             setEmailInput("");
             setPasswordInput("");
             setShowModal(false);
-            setIsPro(false);
             setHoveredElement(null);
             await cursorControls.set({ x: 0, y: 0, opacity: 0 });
 
-            await new Promise(r => setTimeout(r, 800));
+            await new Promise(r => setTimeout(r, 1000));
 
-            // ==========================================
-            // 1. LOGIN FLOW
-            // ==========================================
+            // 1. LOGIN
             await cursorControls.start({ opacity: 1, x: 100, y: 100, transition: { duration: 0.5 } });
-
-            // Move to Email Input (approx center)
-            await cursorControls.start({ x: 400, y: 180, transition: { duration: 0.8 } });
-            await typeText("demo@focusforge.ai", setEmailInput);
-
-            // Move to Password Input
-            await cursorControls.start({ x: 400, y: 250, transition: { duration: 0.5 } });
+            await cursorControls.start({ x: 450, y: 300, transition: { duration: 0.8, ease: "easeInOut" } });
+            await typeText("hello@focusforge.ai", setEmailInput);
+            await cursorControls.start({ x: 450, y: 380, transition: { duration: 0.4 } });
             await typeText("********", setPasswordInput);
-
-            // Move to Login Button
-            await cursorControls.start({ x: 400, y: 320, transition: { duration: 0.5 } });
+            await cursorControls.start({ x: 450, y: 460, transition: { duration: 0.4 } });
             setHoveredElement("login-btn");
-            await new Promise(r => setTimeout(r, 200));
-            // Click Login
-            await buttonControls.start({ scale: 0.95, transition: { duration: 0.1 } });
-            await buttonControls.start({ scale: 1, transition: { duration: 0.1 } });
+            await new Promise(r => setTimeout(r, 300));
+            await buttonControls.start({ scale: 0.95 });
+            await buttonControls.start({ scale: 1 });
             setHoveredElement(null);
-
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 600));
             setActiveView("dashboard");
 
-            // ==========================================
-            // 2. DASHBOARD FLOW
-            // ==========================================
-            // Move to 'Start' button - Center of square is roughly x: 220, y: 240 relative to container top-left
-            await cursorControls.start({ x: 220, y: 240, transition: { duration: 1, ease: "easeInOut" } });
+            // 2. DASHBOARD
+            await cursorControls.start({ x: 420, y: 380, transition: { duration: 1, ease: "circOut" } });
             setHoveredElement("play-btn");
-            await buttonControls.start({ scale: 0.9, transition: { duration: 0.1 } });
-            await new Promise(r => setTimeout(r, 100));
-            await buttonControls.start({ scale: 1, transition: { duration: 0.1 } });
-            setIsPlaying(true);
-            setHoveredElement(null);
-
-            // Simulate timer running for a bit
-            await new Promise(r => setTimeout(r, 1200));
-
-            // ==========================================
-            // 3. TASKS FLOW
-            // ==========================================
-            // Move to sidebar 'Tasks' icon (x: ~40, y: ~150)
-            await cursorControls.start({ x: 40, y: 150, transition: { duration: 0.8 } });
-            setHoveredElement("nav-tasks");
             await new Promise(r => setTimeout(r, 200));
+            await buttonControls.start({ scale: 0.9 });
+            setIsPlaying(true);
+            await buttonControls.start({ scale: 1 });
+            setHoveredElement(null);
+            await new Promise(r => setTimeout(r, 1500));
+
+            // 3. TASKS
+            await cursorControls.start({ x: 50, y: 250, transition: { duration: 0.7 } });
+            setHoveredElement("nav-tasks");
+            await new Promise(r => setTimeout(r, 300));
             setActiveView("tasks");
             setHoveredElement(null);
+            await new Promise(r => setTimeout(r, 800));
 
+            // Complete Task
+            await cursorControls.start({ x: 300, y: 280, transition: { duration: 0.6 } });
+            setHoveredElement("task-1");
             await new Promise(r => setTimeout(r, 400));
-
-            // Move to "New Task" button (top right, x: ~750, y: ~50)
-            await cursorControls.start({ x: 750, y: 50, transition: { duration: 0.8 } });
-            setHoveredElement("new-task-btn");
-            await new Promise(r => setTimeout(r, 200));
-            setShowModal(true);
+            setTasks(prev => prev.map(t => t.id === 1 ? { ...t, status: "done" } : t));
             setHoveredElement(null);
+            await new Promise(r => setTimeout(r, 1000));
 
-            // Move to input field (center, x: ~400, y: ~200)
-            await cursorControls.start({ x: 400, y: 200, transition: { duration: 0.5 } });
-            await typeText("Review Pull Requests", setInputValue);
-
-            // Move to "Create" button in modal (bottom right of modal, x: ~580, y: ~320)
-            await cursorControls.start({ x: 580, y: 320, transition: { duration: 0.5 } });
-            setHoveredElement("create-task-confirm");
-            await new Promise(r => setTimeout(r, 200));
-            setTasks(prev => [{ id: 3, title: "Review Pull Requests", priority: "High", status: "todo" }, ...prev]);
-            setShowModal(false);
-            setHoveredElement(null);
-
-            await new Promise(r => setTimeout(r, 500));
-
-            // ==========================================
-            // 4. ANALYTICS FLOW
-            // ==========================================
-            // Move to sidebar 'Analytics' icon (x: ~40, y: ~210)
-            await cursorControls.start({ x: 40, y: 210, transition: { duration: 0.8 } });
+            // 4. ANALYTICS
+            await cursorControls.start({ x: 50, y: 330, transition: { duration: 0.6 } });
             setHoveredElement("nav-analytics");
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 300));
             setActiveView("analytics");
             setHoveredElement(null);
+            await new Promise(r => setTimeout(r, 4000));
 
-            await new Promise(r => setTimeout(r, 3000)); // Let user see the charts
-
-            // --- LOOP (Reset to Login) ---
+            // LOOP
             await cursorControls.start({ opacity: 0, transition: { duration: 0.5 } });
             sequence();
         };
 
         sequence();
-
         return () => { mounted = false; };
     }, []);
 
@@ -158,12 +119,11 @@ export function HeroDemo() {
         let interval: NodeJS.Timeout;
         if (isPlaying && timeLeft > 0) {
             interval = setInterval(() => {
-                setTimeLeft((prev) => prev - 10); // Super fast timer
+                setTimeLeft((prev) => Math.max(0, prev - 15));
             }, 100);
         }
         return () => clearInterval(interval);
     }, [isPlaying, timeLeft]);
-
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
@@ -172,116 +132,128 @@ export function HeroDemo() {
     };
 
     return (
-        <div className="relative w-full max-w-5xl mx-auto mt-12 select-none pointer-events-none">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-[2rem] blur opacity-30 animate-pulse"></div>
+        <div className="relative w-full max-w-5xl mx-auto mt-20 select-none pointer-events-none scale-90 md:scale-100">
+            {/* Ambient Background Glow */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-[3rem] blur-3xl opacity-50 animate-pulse"></div>
 
             <motion.div
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative bg-card rounded-[2rem] shadow-2xl overflow-hidden border-4 border-card/50 ring-1 ring-white/10 aspect-video flex"
+                transition={{ duration: 1 }}
+                className="relative bg-[#0A0A0B] rounded-[2.5rem] shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden border border-white/10 ring-1 ring-white/5 aspect-[16/10] flex"
             >
-                {/* VIEW: LOGIN (Full Screen Overlay) */}
-                {activeView === 'login' && (
-                    <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-20 bg-background flex flex-col items-center justify-center p-8"
-                    >
-                        <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-primary/20">
-                            <BrainCircuit className="w-8 h-8 text-primary-foreground" />
-                        </div>
-                        <h2 className="text-2xl font-bold mb-8">Welcome Back</h2>
-                        <div className="w-full max-w-xs space-y-4">
-                            <div className="space-y-2">
-                                <div className="text-xs font-bold text-muted-foreground ml-1">Email</div>
-                                <div className="h-10 border border-input rounded-lg bg-card px-3 flex items-center text-sm shadow-sm">
-                                    {emailInput}{activeView === 'login' && !passwordInput && <span className="animate-pulse">|</span>}
-                                </div>
+                {/* LOGIN OVERLAY */}
+                <AnimatePresence>
+                    {activeView === 'login' && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="absolute inset-0 z-30 bg-[#0A0A0B] flex flex-col items-center justify-center p-12"
+                        >
+                            <div className="p-4 bg-primary/10 rounded-2xl mb-8 border border-primary/20">
+                                <Brain className="w-12 h-12 text-primary fill-primary/20" />
                             </div>
-                            <div className="space-y-2">
-                                <div className="text-xs font-bold text-muted-foreground ml-1">Password</div>
-                                <div className="h-10 border border-input rounded-lg bg-card px-3 flex items-center text-sm shadow-sm">
-                                    {passwordInput.replace(/./g, '•')}{activeView === 'login' && passwordInput && <span className="animate-pulse">|</span>}
-                                </div>
-                            </div>
-                            <motion.button
-                                animate={buttonControls}
-                                className={`w-full h-10 bg-primary text-primary-foreground rounded-lg font-bold text-sm shadow-lg mt-4 transition-transform ${hoveredElement === 'login-btn' ? 'scale-105' : ''}`}
-                            >
-                                Log In
-                            </motion.button>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* Sidebar (Hidden on Login) */}
-                {activeView !== 'login' && (
-                    <div className="w-20 bg-muted/30 border-r border-border flex flex-col items-center py-8 gap-8 z-10 transition-all duration-500">
-                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-inner">
-                            <BrainCircuit className="w-6 h-6" />
-                        </div>
-
-                        <div className="flex flex-col gap-6 w-full px-4">
-                            <SidebarIcon active={activeView === 'dashboard'} hover={hoveredElement === 'nav-dashboard'} icon={<LayoutDashboard />} />
-                            <SidebarIcon active={activeView === 'tasks'} hover={hoveredElement === 'nav-tasks'} icon={<ListTodo />} />
-                            <SidebarIcon active={activeView === 'analytics'} hover={hoveredElement === 'nav-analytics'} icon={<BarChart3 />} />
-                            <SidebarIcon active={false} icon={<Calendar />} />
-                        </div>
-                    </div>
-                )}
-
-                {/* Main Content Area */}
-                <div className="flex-1 bg-background/50 p-8 overflow-hidden relative flex flex-col">
-                    {/* Header */}
-                    {activeView !== 'login' && (
-                        <div className="flex justify-between items-center mb-6 shrink-0">
-                            <h2 className="text-2xl font-bold capitalize flex items-center gap-2">
-                                {activeView === 'analytics' && <BarChart3 className="w-6 h-6 text-primary" />}
-                                {activeView === 'tasks' && <ListTodo className="w-6 h-6 text-primary" />}
-                                {activeView === 'dashboard' && <LayoutDashboard className="w-6 h-6 text-primary" />}
-                                {activeView}
-                            </h2>
-                            <div className={`flex items-center gap-3 transition-transform ${hoveredElement === 'user-profile' ? 'scale-110' : ''}`}>
-                                <div className="text-right">
-                                    <div className="text-xs text-muted-foreground font-bold">SHAIB P.</div>
-                                    <div className="text-[10px] px-2 py-0.5 rounded-full inline-block bg-primary/20 text-primary">
-                                        Pro Plan
+                            <h2 className="text-3xl font-black text-foreground tracking-tight mb-10">FocusForageAI</h2>
+                            <div className="w-full max-w-sm space-y-5">
+                                <div className="space-y-2">
+                                    <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Cognitive ID</div>
+                                    <div className="h-14 rounded-2xl bg-white/5 border border-white/10 px-4 flex items-center text-sm font-medium text-foreground/80 shadow-inner">
+                                        {emailInput}{!passwordInput && <span className="w-1.5 h-4 bg-primary ml-1 animate-pulse"></span>}
                                     </div>
                                 </div>
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold shadow-md">
-                                    SP
+                                <div className="space-y-2">
+                                    <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Access Protocol</div>
+                                    <div className="h-14 rounded-2xl bg-white/5 border border-white/10 px-4 flex items-center text-sm font-medium text-foreground/80 shadow-inner">
+                                        {passwordInput.replace(/./g, '•')}{passwordInput && <span className="w-1.5 h-4 bg-primary ml-1 animate-pulse"></span>}
+                                    </div>
                                 </div>
+                                <motion.div
+                                    animate={buttonControls}
+                                    className={`h-14 bg-primary text-primary-foreground rounded-2xl font-black text-sm shadow-xl flex items-center justify-center transition-all ${hoveredElement === 'login-btn' ? 'scale-[1.02] shadow-primary/30' : ''}`}
+                                >
+                                    Log In ⚡
+                                </motion.div>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
+                </AnimatePresence>
 
+                {/* SIDEBAR */}
+                <div className="w-24 bg-card/30 border-r border-white/5 flex flex-col items-center py-10 gap-10 shrink-0">
+                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
+                        <Brain className="w-7 h-7 text-primary fill-primary/20" />
+                    </div>
+                    <div className="flex flex-col gap-6 w-full px-5">
+                        <NavIcon active={activeView === 'dashboard'} icon={<LayoutDashboard />} />
+                        <NavIcon active={activeView === 'tasks'} icon={<ListTodo />} />
+                        <NavIcon active={activeView === 'analytics'} icon={<BarChart3 />} />
+                        <NavIcon active={false} icon={<Calendar />} />
+                    </div>
+                </div>
 
-                    <div className="relative flex-1 overflow-hidden">
+                {/* CONTENT AREA */}
+                <div className="flex-1 p-10 flex flex-col min-h-0 bg-gradient-to-br from-background via-background to-primary/[0.02]">
+                    <header className="flex justify-between items-center mb-10 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                                {activeView === 'dashboard' && <><LayoutDashboard className="w-7 h-7 text-primary" /> Dashboard</>}
+                                {activeView === 'tasks' && <><ListTodo className="w-7 h-7 text-primary" /> Tasks</>}
+                                {activeView === 'analytics' && <><BarChart3 className="w-7 h-7 text-primary" /> Analytics</>}
+                            </h2>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="text-right">
+                                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5">Shaib P.</div>
+                                <div className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">Pro Plan</div>
+                            </div>
+                            <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black text-lg shadow-lg border border-white/10 ring-2 ring-white/5">SP</div>
+                        </div>
+                    </header>
+
+                    <div className="relative flex-1 min-h-0">
                         {/* VIEW: DASHBOARD */}
                         {activeView === 'dashboard' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-2 gap-6 h-full">
-                                <div className="col-span-1 bg-card rounded-3xl p-8 flex flex-col items-center justify-center border border-border shadow-sm relative overflow-hidden group">
-                                    <div className="absolute top-4 right-4 text-xs font-bold text-muted-foreground bg-secondary/10 px-2 py-1 rounded-full">AI MODE</div>
-                                    <div className={`text-6xl font-bold tabular-nums mb-4 tracking-tighter ${isPlaying ? 'text-primary' : 'text-foreground'}`}>
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-5 gap-8 h-full">
+                                <div className="col-span-3 bg-card/60 backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center justify-center relative group p-10">
+                                    <div className="absolute top-6 right-6 flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-xl border border-primary/20">
+                                        <Zap className="w-3 h-3 text-primary fill-current" />
+                                        <span className="text-[9px] font-black text-primary tracking-widest uppercase">AI Optimal</span>
+                                    </div>
+                                    <div className={`text-[7rem] font-black tabular-nums tracking-tighter leading-none mb-10 ${isPlaying ? 'text-primary' : 'text-foreground'}`}>
                                         {formatTime(timeLeft)}
                                     </div>
-                                    <motion.button
+                                    <motion.div
                                         animate={buttonControls}
-                                        className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-colors ${isPlaying ? 'bg-secondary text-secondary-foreground' : 'bg-primary text-primary-foreground'} ${hoveredElement === 'play-btn' ? 'scale-110 ring-4 ring-primary/20' : ''}`}
+                                        className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all ${isPlaying ? 'bg-secondary text-secondary-foreground rotate-90' : 'bg-primary text-primary-foreground'} ${hoveredElement === 'play-btn' ? 'scale-110 shadow-primary/40 ring-8 ring-primary/10' : ''}`}
                                     >
-                                        <Play className="w-6 h-6 fill-current" />
-                                    </motion.button>
+                                        <Play className="w-8 h-8 fill-current" />
+                                    </motion.div>
                                 </div>
-                                <div className="col-span-1 space-y-4">
-                                    <div className="bg-card/50 p-5 rounded-2xl border border-border">
-                                        <h3 className="font-bold mb-2 text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" /> Focus Score</h3>
-                                        <div className="text-4xl font-bold text-foreground">92<span className="text-lg text-muted-foreground">/100</span></div>
-                                        <div className="h-2 w-full bg-muted mt-3 rounded-full overflow-hidden">
-                                            <div className="h-full bg-green-500 w-[92%] animate-pulse"></div>
+                                <div className="col-span-2 space-y-6">
+                                    <div className="bg-card/40 p-6 rounded-[2rem] border border-white/10">
+                                        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <Activity className="w-4 h-4 text-primary" /> Cognitive Score
+                                        </h4>
+                                        <div className="text-5xl font-black mb-4 tracking-tight">92<span className="text-xl text-muted-foreground font-medium ml-1">/100</span></div>
+                                        <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: "92%" }}
+                                                className="h-full bg-gradient-to-r from-primary to-accent"
+                                            />
                                         </div>
                                     </div>
-                                    <div className="bg-gradient-to-br from-primary/10 to-transparent p-5 rounded-2xl border border-primary/20">
-                                        <h3 className="font-bold mb-1 text-sm text-primary flex items-center gap-2"><BrainCircuit className="w-4 h-4" /> AI Insight</h3>
-                                        <p className="text-xs text-foreground/80 leading-relaxed">Your focus peaks at 10 AM. Scheduling a deep work session now is recommended.</p>
+                                    <div className="bg-primary/10 p-6 rounded-[2rem] border border-primary/20 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <Brain className="w-12 h-12" />
+                                        </div>
+                                        <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
+                                            <Zap className="w-4 h-4" /> AI Reflection
+                                        </h4>
+                                        <p className="text-sm font-bold text-foreground leading-relaxed">
+                                            Your neural bandwidth peaks at 11 AM. A 25min deep session now will maximize output.
+                                        </p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -289,34 +261,38 @@ export function HeroDemo() {
 
                         {/* VIEW: TASKS */}
                         {activeView === 'tasks' && (
-                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-full flex flex-col">
-                                <div className="flex justify-between mb-4">
-                                    <div className="flex gap-2">
-                                        <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">Todo</span>
-                                        <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-bold border border-border">Done</span>
+                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-full flex flex-col gap-6">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex gap-3">
+                                        <span className="px-4 py-2 rounded-xl bg-primary/20 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 shadow-lg shadow-primary/10">Working</span>
+                                        <span className="px-4 py-2 rounded-xl bg-white/5 text-muted-foreground text-[10px] font-black uppercase tracking-widest border border-white/5">Archives</span>
                                     </div>
-                                    <button className={`flex items-center gap-2 px-3 py-1 bg-primary text-primary-foreground rounded-lg text-xs font-bold transition-transform ${hoveredElement === 'new-task-btn' ? 'scale-105 shadow-md' : ''}`}>
-                                        <Plus className="w-3 h-3" /> New Task
-                                    </button>
+                                    <div className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20">
+                                        <Plus className="w-4 h-4" /> New Task
+                                    </div>
                                 </div>
-                                <div className="space-y-3 flex-1 overflow-visible">
+                                <div className="grid grid-cols-1 gap-4">
                                     {tasks.map((task, i) => (
                                         <motion.div
+                                            key={task.id}
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * 0.1 }}
-                                            key={task.id}
-                                            className="bg-card p-4 rounded-xl border border-border flex justify-between items-center shadow-sm hover:border-primary/30 transition-colors"
+                                            className={`p-6 rounded-[1.75rem] border transition-all flex items-center justify-between group ${task.status === 'done' ? 'bg-green-500/10 border-green-500/20 opacity-60' : 'bg-card/40 border-white/10 hover:border-primary/40 shadow-xl'}`}
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${task.status === 'done' ? 'bg-green-500 border-green-500' : 'border-primary/50'}`}>
-                                                    {task.status === 'done' && <CheckCircle className="w-3 h-3 text-white" />}
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all ${task.status === 'done' ? 'bg-green-500 border-green-500' : 'border-primary/50 bg-primary/5'}`}>
+                                                    {task.status === 'done' && <CheckCircle className="w-4 h-4 text-white" />}
                                                 </div>
-                                                <span className="font-medium text-sm">{task.title}</span>
+                                                <span className={`text-lg font-bold tracking-tight ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                                    {task.title}
+                                                </span>
                                             </div>
-                                            <span className={`text-[10px] px-2 py-1 rounded font-bold uppercase ${task.priority === 'High' ? 'bg-red-500/10 text-red-500' : 'bg-secondary/10 text-secondary'}`}>
-                                                {task.priority}
-                                            </span>
+                                            <div className="flex items-center gap-3">
+                                                <span className={`text-[9px] px-3 py-1 rounded-lg font-black uppercase tracking-[0.2em] ${task.priority === 'High' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'}`}>
+                                                    {task.priority}
+                                                </span>
+                                            </div>
                                         </motion.div>
                                     ))}
                                 </div>
@@ -325,87 +301,76 @@ export function HeroDemo() {
 
                         {/* VIEW: ANALYTICS */}
                         {activeView === 'analytics' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col gap-6">
-                                {/* Stats Row */}
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="bg-card border border-border p-4 rounded-2xl">
-                                        <div className="text-muted-foreground text-[10px] uppercase font-bold mb-1">Total Focus</div>
-                                        <div className="text-2xl font-bold flex items-baseline gap-1">12.5<span className="text-sm font-normal text-muted-foreground">hrs</span></div>
-                                    </div>
-                                    <div className="bg-card border border-border p-4 rounded-2xl">
-                                        <div className="text-muted-foreground text-[10px] uppercase font-bold mb-1">Sessions</div>
-                                        <div className="text-2xl font-bold">14</div>
-                                    </div>
-                                    <div className="bg-card border border-border p-4 rounded-2xl">
-                                        <div className="text-muted-foreground text-[10px] uppercase font-bold mb-1">Streak</div>
-                                        <div className="text-2xl font-bold text-orange-500 flex items-center gap-1"><Zap className="w-4 h-4 fill-current" /> 5</div>
-                                    </div>
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col gap-8">
+                                <div className="grid grid-cols-3 gap-6">
+                                    <StatCard label="Total Focus" value="48h 20m" icon={<Clock className="text-blue-400" />} />
+                                    <StatCard label="Flow Cycles" value="142" icon={<Activity className="text-accent" />} />
+                                    <StatCard label="Victory Rate" value="98%" icon={<Target className="text-primary" />} />
                                 </div>
-
-                                {/* Chart */}
-                                <div className="flex-1 bg-card border border-border rounded-2xl p-6 flex flex-col justify-end relative overflow-hidden">
-                                    <p className="absolute top-4 left-4 text-xs font-bold text-muted-foreground flex items-center gap-2"><TrendingUp className="w-3 h-3" /> Weekly Activity</p>
-                                    <div className="flex items-end justify-between gap-2 h-32">
-                                        {[40, 65, 30, 85, 50, 90, 60].map((h, i) => (
+                                <div className="flex-1 bg-card/60 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 flex flex-col relative overflow-hidden shadow-2xl">
+                                    <div className="flex justify-between items-start mb-10">
+                                        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <TrendingUp className="w-4 h-4 text-primary" /> Recovery Period Analysis
+                                        </h4>
+                                        <div className="flex gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                            <div className="w-2 h-2 rounded-full bg-accent" />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 flex items-end justify-between gap-4 px-2">
+                                        {[45, 60, 35, 90, 55, 80, 65, 40, 75, 50, 95, 70].map((h, i) => (
                                             <motion.div
                                                 key={i}
-                                                initial={{ height: 0 }}
-                                                animate={{ height: `${h}%` }}
-                                                transition={{ delay: i * 0.1, duration: 0.5, type: 'spring' }}
-                                                className="w-full bg-gradient-to-t from-primary/50 to-primary rounded-t-md relative group opacity-80 hover:opacity-100 transition-opacity"
+                                                initial={{ scaleY: 0 }}
+                                                animate={{ scaleY: 1 }}
+                                                transition={{ delay: i * 0.05, duration: 1, ease: "circOut" }}
+                                                style={{ height: `${h}%` }}
+                                                className="w-full bg-gradient-to-t from-primary/40 to-primary rounded-xl origin-bottom relative group"
                                             >
-                                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-popover px-2 py-0.5 rounded shadow-sm">{h}m</div>
+                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-card border border-white/10 px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all text-xs font-black shadow-2xl">
+                                                    {h}%
+                                                </div>
                                             </motion.div>
                                         ))}
                                     </div>
-                                    <div className="flex justify-between mt-2 text-[10px] text-muted-foreground font-medium uppercase">
+                                    <div className="flex justify-between mt-8 text-[9px] text-muted-foreground/60 font-black uppercase tracking-[0.3em] px-1">
                                         <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                                     </div>
                                 </div>
                             </motion.div>
                         )}
-
-                        {/* MODAL (New Task) */}
-                        {showModal && (
-                            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-20">
-                                <motion.div
-                                    initial={{ scale: 0.9, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="bg-card border border-border p-6 rounded-2xl w-3/4 shadow-2xl"
-                                >
-                                    <h3 className="font-bold mb-4">Create New Task</h3>
-                                    <div className="h-10 border-2 border-primary/50 rounded-lg bg-background px-3 flex items-center text-sm mb-4 shadow-sm">
-                                        {inputValue}<span className="animate-pulse w-0.5 h-4 bg-primary ml-0.5"></span>
-                                    </div>
-                                    <div className="flex justify-end gap-2">
-                                        <div className="px-4 py-2 bg-muted rounded-lg text-xs font-bold">Cancel</div>
-                                        <div className={`px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold transition-transform ${hoveredElement === 'create-task-confirm' ? 'scale-105 shadow-lg' : ''}`}>Create</div>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        )}
-
                     </div>
                 </div>
 
-                {/* CURSOR */}
+                {/* ANIMATED CURSOR */}
                 <motion.div
                     animate={cursorControls}
-                    className="absolute z-50 pointer-events-none drop-shadow-2xl"
+                    className="absolute z-[100] pointer-events-none drop-shadow-[0_15px_15px_rgba(0,0,0,0.5)]"
                     style={{ left: 0, top: 0 }}
                 >
-                    <MousePointer2 className="w-8 h-8 fill-black text-white stroke-[1.5]" />
+                    <MousePointer2 className="w-10 h-10 fill-white text-black stroke-[2px]" />
                 </motion.div>
-
             </motion.div>
         </div>
     );
 }
 
-function SidebarIcon({ active, hover, icon }: { active: boolean, hover?: boolean, icon: React.ReactNode }) {
+function NavIcon({ active, icon }: { active: boolean, icon: React.ReactNode }) {
     return (
-        <div className={`p-3 rounded-xl transition-all duration-300 ${active ? 'bg-primary text-primary-foreground shadow-lg scale-105' : 'text-muted-foreground hover:bg-muted'}`}>
-            {React.cloneElement(icon as React.ReactElement<any>, { size: 20 })}
+        <div className={`p-4 rounded-2xl transition-all duration-500 border ${active ? 'bg-primary text-primary-foreground shadow-2xl shadow-primary/40 border-primary scale-110' : 'text-muted-foreground border-transparent hover:bg-white/5 hover:border-white/10'}`}>
+            {React.cloneElement(icon as React.ReactElement<any>, { size: 24, strokeWidth: active ? 2.5 : 2 })}
+        </div>
+    );
+}
+
+function StatCard({ label, value, icon }: { label: string, value: string, icon: React.ReactNode }) {
+    return (
+        <div className="bg-card/40 border border-white/10 p-6 rounded-[2rem] shadow-xl hover:border-primary/20 transition-all flex flex-col gap-3 group">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">{label}</span>
+                <div className="p-2 bg-white/5 rounded-xl group-hover:scale-110 transition-transform">{icon}</div>
+            </div>
+            <div className="text-3xl font-black tracking-tight text-foreground">{value}</div>
         </div>
     );
 }
