@@ -17,10 +17,21 @@ export default async function AppLayout({
         redirect("/signin");
     }
 
+    // Fetch real-time user data for XP sync
+    const { eq } = await import("drizzle-orm");
+    const { users } = await import("@/db/schema");
+    const { db } = await import("@/db");
+
+    const dbUser = await db.query.users.findFirst({
+        where: eq(users.id, session.user.id)
+    });
+
+    const user = { ...session.user, ...dbUser };
+
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors duration-300">
             {/* Navigation */}
-            <TopNav user={session.user as any} />
+            <TopNav user={user as any} />
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto bg-grid-small-black/[0.2] dark:bg-grid-small-white/[0.2] min-h-[calc(100vh-64px)] relative">

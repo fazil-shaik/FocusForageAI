@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { focusSessions, dailyStats, users } from "@/db/schema";
+import { focusSessions, dailyStats, users, tasks } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -12,6 +12,9 @@ export async function saveFocusSession(data: {
     moodStart?: string;
     taskName?: string;
     distractionCount?: number;
+    isBoosted?: boolean;
+    taskId?: string;
+    taskStatus?: "todo" | "in_progress" | "done";
 }) {
     const session = await auth.api.getSession({
         headers: await headers(),
@@ -51,6 +54,7 @@ export async function saveFocusSession(data: {
         status: "completed",
         moodStart: data.moodStart,
         taskName: taskName,
+        isBoosted: data.isBoosted || false,
     });
 
     // 2. Update Daily Stats
@@ -83,8 +87,8 @@ export async function saveFocusSession(data: {
     // Base XP: 10 per minute
     // Bonus: 50 XP for finishing
     // Penalty: -5 XP per distraction
-    const baseXP = duration * 10;
-    const bonusXP = 50;
+    const baseXP = data.isBoosted ? 0 : duration * 10;
+    const bonusXP = data.isBoosted ? 10 : 50;
     const penaltyXP = distractions * 5;
     const totalXP = Math.max(0, baseXP + bonusXP - penaltyXP);
 
@@ -94,6 +98,14 @@ export async function saveFocusSession(data: {
             xp: sql`${users.xp} + ${totalXP}`
         })
         .where(eq(users.id, session.user.id));
+
+    // 5. Optional Task Update
+    if (data.taskId && data.taskStatus) {
+        await db.update(tasks)
+            .set({ status: data.taskStatus })
+            .where(and(eq(tasks.id, data.taskId), eq(tasks.userId, session.user.id)));
+        revalidatePath("/tasks");
+    }
 
     revalidatePath("/dashboard");
     revalidatePath("/analytics");

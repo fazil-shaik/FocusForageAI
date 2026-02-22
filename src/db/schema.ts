@@ -63,6 +63,7 @@ export const focusSessions = pgTable("focus_session", {
 	moodEnd: text("mood_end"),
 	taskName: text("task_name").notNull(),
 	notes: text("notes"),
+	isBoosted: boolean("is_boosted").default(false),
 	createdAt: timestamp("created_at").defaultNow(),
 });
 

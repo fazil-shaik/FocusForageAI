@@ -24,10 +24,10 @@ export async function generateDynamicInsight(data: {
                 Recent Sessions: ${JSON.stringify(metrics.sessions)}
                 
                 Focus on patterns like:
-                - Energy management based on XP earn rate.
-                - Consistency in session completion.
-                - Distraction trends vs research time.
-                - Actionable tips to increase Focus Score.
+                - Energy management and consistency.
+                - Rushing behavior: They boosted ${metrics.sessions.filter(s => s.isBoosted).length} sessions.
+                - Why they might be boosting (impatience vs. flow).
+                - Actionable tips to improve deep work quality.
                 
                 Keep the response under 100 characters. Be encouraging, slightly provocative, and highly personalized.
             `;

@@ -121,7 +121,10 @@ export default async function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* Focus Timer Card */}
-                <FocusTimer userPlan={(session.user as any).plan || "free"} />
+                <FocusTimer
+                    userPlan={(session.user as any).plan || "free"}
+                    recentTasks={recentTasks}
+                />
 
                 {/* Right Column: Stats & Tasks */}
                 <div className="space-y-6">
