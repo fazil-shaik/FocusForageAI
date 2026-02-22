@@ -48,13 +48,13 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                     title="Avg Focus Score"
                     value="8.5/10"
                     icon={<Brain className="w-5 h-5 text-blue-400" />}
-                    trend="Consistent"
+                    trend="Self-Reported"
                 />
                 <MetricCard
-                    title="Brain Strain"
-                    value="Low"
-                    icon={<Activity className="w-5 h-5 text-green-400" />}
-                    trend="Optimal range"
+                    title="Distractions"
+                    value={data.dailyStats.reduce((acc, curr) => acc + (curr.distractionCount || 0), 0).toString()}
+                    icon={<Activity className="w-5 h-5 text-red-400" />}
+                    trend="Last 30 Days"
                 />
             </div>
 
@@ -70,12 +70,14 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                         {data.dailyStats.map((stat, i) => {
                             const heightPercentage = ((stat.totalDeepWorkMinutes || 0) / maxMinutes) * 100;
                             return (
-                                <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative">
+                                <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative h-full">
                                     <motion.div
                                         initial={{ height: 0 }}
-                                        animate={{ height: `${heightPercentage}%` }}
+                                        animate={{ height: `${Math.max(heightPercentage, 2)}%` }} // Min 2% height for visibility
                                         transition={{ duration: 0.5, delay: i * 0.02 }}
-                                        className="w-full bg-gradient-to-t from-primary/50 to-primary rounded-t-full hover:from-primary hover:to-accent transition-colors"
+                                        className={`w-full rounded-t-full transition-colors ${stat.totalDeepWorkMinutes > 0
+                                            ? 'bg-gradient-to-t from-primary/50 to-primary hover:from-primary hover:to-accent'
+                                            : 'bg-secondary/10'}`} // Gray bar for no data
                                     />
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded-lg border border-border whitespace-nowrap z-10 pointer-events-none shadow-lg">

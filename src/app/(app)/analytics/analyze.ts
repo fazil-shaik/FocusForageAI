@@ -21,13 +21,17 @@ export async function generatePatternAnalysis(userId: string) {
     const completed = await db.select({ count: sql<number>`count(*)` }).from(focusSessions).where(eq(focusSessions.userId, userId));
 
     // Simulated Metrics for the Prompt (Hard to calc real delay/sleep without more data)
+    const totalMinutes = stats.reduce((acc, curr) => acc + (curr.totalDeepWorkMinutes || 0), 0);
+    const totalDistractions = stats.reduce((acc, curr) => acc + (curr.distractionCount || 0), 0);
+    const avgSessionsPerDay = stats.length > 0 ? (stats.reduce((acc, curr) => acc + (curr.sessionsCompleted || 0), 0) / stats.length).toFixed(1) : 0;
+
     const metrics = {
         planned: planned[0].count,
         completed: completed[0].count,
-        delay: "45 mins",
-        switching: "High",
-        sleep: "6.5 hrs", // Placeholder
-        emotions: "Anxious, Tired" // Placeholder
+        totalHours: (totalMinutes / 60).toFixed(1),
+        distractions: totalDistractions,
+        avgSessions: avgSessionsPerDay,
+        emotions: "Varying" // Placeholder until real mood logs are integrated
     };
 
     const prompt = `
@@ -35,14 +39,13 @@ export async function generatePatternAnalysis(userId: string) {
     
     User Weekly Metrics:
     - Planned sessions: ${metrics.planned}
-    - Completed: ${metrics.completed}
-    - Avg start delay: ${metrics.delay}
-    - Task switching: ${metrics.switching}
-    - Sleep: ${metrics.sleep}
+    - Total Deep Work Hours: ${metrics.totalHours}
+    - Total Distractions: ${metrics.distractions}
+    - Avg Sessions per Day: ${metrics.avgSessions}
     - Emotional logs: ${metrics.emotions}
 
     Analyze:
-    1. 3 procrastination patterns.
+    1. 3 procrastination patterns (be aware that some tab switching is research).
     2. 2 triggers.
     3. 1 psychological factor.
     4. 3-step correction strategy.

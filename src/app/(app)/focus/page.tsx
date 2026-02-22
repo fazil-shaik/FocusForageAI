@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Brain, CheckCircle, Volume2, Maximize2, X, AlertTriangle } from "lucide-react";
+import { Play, Pause, Brain, CheckCircle, Volume2, Maximize2, X, AlertTriangle, Activity } from "lucide-react";
 import Link from "next/link";
 import { saveFocusSession } from "./actions";
 
@@ -17,18 +17,31 @@ export default function FocusSession() {
     const [distractions, setDistractions] = useState(0);
     const [xpEarned, setXpEarned] = useState(0);
     const [isSaving, setIsSaving] = useState(false);
+    const [isPermissionsGranted, setIsPermissionsGranted] = useState(false);
+    const [showMindfulReturn, setShowMindfulReturn] = useState(false);
+    const [awayDuration, setAwayDuration] = useState(0);
+    const [lastAwayTime, setLastAwayTime] = useState<number | null>(null);
+    const [sessionGoal, setSessionGoal] = useState("");
 
     // Distraction Tracking
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.hidden && isActive) {
-                setDistractions((prev) => prev + 1);
+                setLastAwayTime(Date.now());
+            } else if (!document.hidden && isActive && lastAwayTime) {
+                const duration = (Date.now() - lastAwayTime) / 1000;
+                if (duration > 5) { // 5 second grace period
+                    setAwayDuration(Math.round(duration));
+                    setShowMindfulReturn(true);
+                    setIsActive(false); // Pause timer while they explain
+                }
+                setLastAwayTime(null);
             }
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [isActive]);
+    }, [isActive, lastAwayTime]);
 
     // Timer Logic
     useEffect(() => {
@@ -52,26 +65,46 @@ export default function FocusSession() {
     };
 
     const startSession = () => {
+        if (!sessionGoal.trim()) {
+            alert("Please set a goal for this session to stay focused!");
+            return;
+        }
         setTimeLeft(duration * 60);
         setStep("timer");
         setIsActive(true);
         setDistractions(0);
+
+        // Request notification permission if advanced check is enabled
+        if (isPermissionsGranted && "Notification" in window) {
+            Notification.requestPermission();
+        }
     };
+
+    // Focus Ping Logic
+    useEffect(() => {
+        let pingInterval: NodeJS.Timeout;
+        if (isActive && isPermissionsGranted && "Notification" in window && Notification.permission === "granted") {
+            pingInterval = setInterval(() => {
+                if (document.hidden) {
+                    new Notification("Focus Check! 🧠", {
+                        body: `Still working on: ${sessionGoal}? Keep it up!`,
+                        icon: "/brain-icon.png" // Fallback if no icon
+                    });
+                }
+            }, 5 * 60 * 1000); // Ping every 5 minutes if tab is hidden
+        }
+        return () => clearInterval(pingInterval);
+    }, [isActive, isPermissionsGranted, sessionGoal]);
 
     const finishSession = async () => {
         setIsActive(false);
         setIsSaving(true);
         try {
-            const actualDuration = duration - Math.floor(timeLeft / 60); // In case they stop early? 
-            // Currently finishes when time is 0, so duration is full duration.
-            // If manual stop, we might want to calculate partial. 
-            // But let's assume full completion for "finishSession" triggered by timer.
-
             const result = await saveFocusSession({
                 duration: duration,
                 moodStart: mood,
                 distractionCount: distractions,
-                taskName: "Focus Mode Session"
+                taskName: sessionGoal || "Focus Mode Session"
             });
             setXpEarned(result.xpEarned);
             setStep("summary");
@@ -124,13 +157,95 @@ export default function FocusSession() {
                                     <div className="text-2xl font-bold text-foreground">{duration} Minutes</div>
                                     <p className="text-xs text-primary mt-1 font-bold">{mood === "Flow" ? "Deep Work Mode" : "Refresh Mode"}</p>
                                 </div>
+                                <div className="mb-8">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 block text-left">Your Session Goal</label>
+                                    <input
+                                        type="text"
+                                        value={sessionGoal}
+                                        onChange={(e) => setSessionGoal(e.target.value)}
+                                        placeholder="e.g., Coding Authentication Flow"
+                                        className="w-full p-4 rounded-xl bg-secondary/5 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium text-foreground"
+                                    />
+                                </div>
+
                                 <button onClick={startSession} className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-full hover:scale-105 transition-transform shadow-lg">
                                     Start Session
                                 </button>
+
+                                <div className="mt-6 p-4 rounded-xl border border-border bg-secondary/5 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg ${isPermissionsGranted ? 'bg-green-500/10 text-green-500' : 'bg-muted text-muted-foreground'}`}>
+                                            <Activity className="w-4 h-4" />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-xs font-bold text-foreground">Advanced Activity Check</p>
+                                            <p className="text-[10px] text-muted-foreground">Require permissions for focus monitoring</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsPermissionsGranted(!isPermissionsGranted)}
+                                        className={`w-10 h-6 rounded-full transition-colors relative ${isPermissionsGranted ? 'bg-primary' : 'bg-muted'}`}
+                                    >
+                                        <motion.div
+                                            animate={{ x: isPermissionsGranted ? 18 : 2 }}
+                                            className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
+                                        />
+                                    </button>
+                                </div>
                             </motion.div>
                         )}
                     </motion.div>
                 )}
+
+                {/* Mindful Return Modal */}
+                <AnimatePresence>
+                    {showMindfulReturn && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-md flex items-center justify-center p-6"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                className="bg-card border border-border p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center"
+                            >
+                                <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                    <Brain className="w-8 h-8" />
+                                </div>
+                                <h3 className="text-2xl font-bold mb-2">Accountability Check</h3>
+                                <p className="text-muted-foreground text-sm mb-6">
+                                    You were away for <span className="text-foreground font-bold">{awayDuration}s</span>.
+                                    Was this for <span className="text-primary font-bold">research ({sessionGoal})</span> or a distraction?
+                                </p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => {
+                                            setShowMindfulReturn(false);
+                                            setIsActive(true);
+                                        }}
+                                        className="py-3 rounded-xl bg-secondary/10 border border-border hover:bg-secondary/20 font-bold transition-all flex flex-col items-center justify-center gap-1"
+                                    >
+                                        <span className="text-sm">Research</span>
+                                        <span className="text-[10px] opacity-70">No Penalty</span>
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setDistractions(prev => prev + 1);
+                                            setShowMindfulReturn(false);
+                                            setIsActive(true);
+                                        }}
+                                        className="py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all flex flex-col items-center justify-center gap-1 shadow-lg shadow-red-500/20"
+                                    >
+                                        <span className="text-sm">Distracted</span>
+                                        <span className="text-[10px] opacity-90">-5 XP Penalty</span>
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {step === "timer" && (
                     <motion.div

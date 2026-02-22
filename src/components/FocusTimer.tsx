@@ -12,6 +12,26 @@ export function FocusTimer({ userPlan = "free" }: { userPlan?: string }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [timeLeft, setTimeLeft] = useState(25 * 60);
 
+    const [lastAwayTime, setLastAwayTime] = useState<number | null>(null);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden && isPlaying) {
+                setLastAwayTime(Date.now());
+            } else if (!document.hidden && isPlaying && lastAwayTime) {
+                const duration = (Date.now() - lastAwayTime) / 1000;
+                if (duration > 5) {
+                    // In dashboard, we just pause for simplicity vs a full modal
+                    setIsPlaying(false);
+                }
+                setLastAwayTime(null);
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [isPlaying, lastAwayTime]);
+
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (isPlaying && timeLeft > 0) {

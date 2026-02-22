@@ -24,12 +24,12 @@ export async function generateDynamicInsight(data: {
                 Recent Sessions: ${JSON.stringify(metrics.sessions)}
                 
                 Focus on patterns like:
-                - Peak productivity times.
-                - Consistency.
-                - Distraction trends.
-                - Mood correlations.
+                - Energy management based on XP earn rate.
+                - Consistency in session completion.
+                - Distraction trends vs research time.
+                - Actionable tips to increase Focus Score.
                 
-                Keep the response under 100 characters. Be encouraging but professional.
+                Keep the response under 100 characters. Be encouraging, slightly provocative, and highly personalized.
             `;
 
             const result = await aiModel.generateContent(prompt);

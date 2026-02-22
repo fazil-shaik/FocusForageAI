@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { tasks, dailyStats, focusSessions } from "@/db/schema";
+import { tasks, dailyStats, focusSessions, users } from "@/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { BrainCircuit, Target, CheckCircle, Zap } from "lucide-react";
 import Link from "next/link";
@@ -37,7 +37,7 @@ async function getDashboardData() {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
 
-    const [recentTasksData, stats, sessions] = await Promise.all([
+    const [recentTasksData, stats, sessions, dbUser] = await Promise.all([
         db.query.tasks.findMany({
             where: and(
                 eq(tasks.userId, session.user.id),
@@ -60,6 +60,9 @@ async function getDashboardData() {
             ),
             orderBy: [desc(focusSessions.startTime)],
             limit: 10,
+        }),
+        db.query.users.findFirst({
+            where: eq(users.id, session.user.id)
         })
     ]);
 
@@ -69,7 +72,8 @@ async function getDashboardData() {
         metrics: {
             stats,
             sessions
-        }
+        },
+        dbUser
     };
 }
 
@@ -80,8 +84,8 @@ export default async function Dashboard() {
         redirect("/signin");
     }
 
-    const { session, recentTasks, metrics } = data;
-    const user = session.user as SessionUser;
+    const { session, recentTasks, metrics, dbUser } = data;
+    const user = { ...session.user, ...dbUser } as SessionUser;
     const userFirstName = user.name?.split(" ")[0] || "User";
 
     const aiInsight = await generateDynamicInsight({

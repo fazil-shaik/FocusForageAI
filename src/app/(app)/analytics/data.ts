@@ -80,7 +80,7 @@ export async function getAnalyticsData() {
     return {
         dailyStats: filledStats,
         recentSessions,
-        totalDeepWorkHours: Math.round(totalDeepWorkMinutes / 60),
+        totalDeepWorkHours: parseFloat((totalDeepWorkMinutes / 60).toFixed(1)),
         totalSessions,
         averageMood: 7.5,
         userPlan,
