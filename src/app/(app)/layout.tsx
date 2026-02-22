@@ -1,17 +1,15 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 import { TopNav } from "@/components/TopNav";
+import { Toaster } from "sonner";
 
 export default async function AppLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
 
     if (!session) {
         redirect("/signin");
@@ -40,6 +38,7 @@ export default async function AppLayout({
                     {children}
                 </div>
             </main>
+            <Toaster position="bottom-right" richColors theme="dark" />
         </div>
     );
 }

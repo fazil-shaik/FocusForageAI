@@ -4,6 +4,7 @@ import { useState, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, MoreVertical, Trash, CheckCircle, Clock, AlertCircle, PlayCircle, GripVertical } from "lucide-react";
 import { createTask, updateTaskStatus, deleteTask } from "@/app/(app)/tasks/actions";
+import { toast } from "sonner";
 import {
     DndContext,
     DragOverlay,
@@ -61,8 +62,17 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
 
     const handleCreate = async (formData: FormData) => {
         setIsCreateOpen(false);
-        await createTask(formData);
-        window.location.reload();
+        try {
+            await createTask(formData);
+            toast.success("Task created!");
+            window.location.reload();
+        } catch (error: any) {
+            if (error.message.includes("LIMIT_REACHED")) {
+                toast.error("Daily task limit reached. Upgrade to Pro!");
+            } else {
+                toast.error("Failed to create task.");
+            }
+        }
     };
 
     const handleStatusChange = async (taskId: string, newStatus: string) => {

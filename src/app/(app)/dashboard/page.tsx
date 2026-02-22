@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { tasks, dailyStats, focusSessions, users } from "@/db/schema";
@@ -27,9 +26,7 @@ interface SessionUser {
 export const dynamic = "force-dynamic";
 
 async function getDashboardData() {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
     if (!session) return null;
 
     // Fetch metrics for AI insights
@@ -142,7 +139,11 @@ export default async function Dashboard() {
                             )}
                         </h3>
                         <p className="text-sm leading-relaxed text-foreground font-medium italic">
-                            "{aiInsight}"
+                            {aiInsight === "LIMIT_REACHED" ? (
+                                <span className="text-muted-foreground not-italic">Daily insight limit reached. Upgrade to Pro for unlimited coaching and advanced neural patterns.</span>
+                            ) : (
+                                `"${aiInsight}"`
+                            )}
                         </p>
                     </div>
 

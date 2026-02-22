@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/SettingsForm";
 import { db } from "@/db";
@@ -7,9 +6,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export default async function SettingsPage() {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
 
     if (!session) {
         redirect("/signin");

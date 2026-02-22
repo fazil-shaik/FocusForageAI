@@ -4,13 +4,10 @@ import { generateContent } from "@/lib/ai";
 import { db } from "@/db";
 import { focusSessions } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 
 export async function generateSmartSessionConfig(mood: string, difficulty: string) {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
     if (!session) throw new Error("Unauthorized");
 
     // Fetch Last 3 Sessions

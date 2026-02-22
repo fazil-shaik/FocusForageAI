@@ -40,6 +40,17 @@ export async function generateDynamicInsight(data: {
         }
     }
 
+    // Check Plan Limits for Free Users (3 Insights per day)
+    const today = new Date().toISOString().split("T")[0];
+    const { redis } = await import("@/lib/redis");
+    const cacheKey = `limits:dashboard_insight:${data.userName}:${today}`;
+    const insightCount = await redis.incr(cacheKey);
+    if (insightCount === 1) await redis.expire(cacheKey, 86400);
+
+    if (insightCount > 3) {
+        return "LIMIT_REACHED";
+    }
+
     // Rule-based engine for Free users
     const totalMinutes = metrics.stats.reduce((acc, curr) => acc + (curr.totalDeepWorkMinutes || 0), 0);
     const avgMinutes = totalMinutes / (metrics.stats.length || 1);

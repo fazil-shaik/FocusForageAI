@@ -3,13 +3,10 @@
 import { db } from "@/db";
 import { dailyStats, focusSessions, tasks } from "@/db/schema";
 import { eq, and, sql, gte } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 
 export async function getDailyReportData() {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
 
     if (!session) return null;
 

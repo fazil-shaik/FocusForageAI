@@ -4,14 +4,11 @@ import { db } from "@/db";
 import { users, focusSessions, tasks, dailyStats, accounts, sessions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 export async function updateProfile(formData: FormData) {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
     if (!session) throw new Error("Unauthorized");
 
     const name = formData.get("name") as string;
@@ -27,9 +24,7 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function deleteAccount() {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
     if (!session) throw new Error("Unauthorized");
 
     const userId = session.user.id;

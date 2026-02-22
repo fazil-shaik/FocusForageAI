@@ -3,9 +3,10 @@
 import { db } from "@/db";
 import { focusSessions, dailyStats, users, tasks } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
 
 export async function saveFocusSession(data: {
     duration: number; // in minutes
@@ -16,22 +17,21 @@ export async function saveFocusSession(data: {
     taskId?: string;
     taskStatus?: "todo" | "in_progress" | "done";
 }) {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
 
     if (!session) throw new Error("Unauthorized");
+
+    // Fetch user for plan checks (if needed for other features later, currently not used after limit removal)
+    const user = await db.query.users.findFirst({
+        where: eq(users.id, session.user.id),
+    });
 
     const today = new Date().toISOString().split("T")[0];
     const taskName = data.taskName || "General Focus";
     const duration = data.duration;
     const distractions = data.distractionCount || 0;
 
-    // Check Plan Limits
-    const user = await db.query.users.findFirst({
-        where: eq(users.id, session.user.id),
-    });
-
+    // Check Focus Session Limits (3 sessions per day for free users)
     if (user?.plan === "free") {
         const todaySessions = await db.query.dailyStats.findFirst({
             where: and(
@@ -41,7 +41,7 @@ export async function saveFocusSession(data: {
         });
 
         if (todaySessions && (todaySessions.sessionsCompleted || 0) >= 3) {
-            throw new Error("Free plan limit reached. Upgrade to Pro for unlimited sessions.");
+            throw new Error("LIMIT_REACHED: Daily limit of 3 focus sessions reached for free users. Upgrade to Pro for unlimited sessions.");
         }
     }
 
@@ -83,19 +83,18 @@ export async function saveFocusSession(data: {
         });
     }
 
-    // 3. Calculate XP (Simple Gamification)
-    // Base XP: 10 per minute
-    // Bonus: 50 XP for finishing
-    // Penalty: -5 XP per distraction
+    // 3. Calculate XP (Refined per feedback)
+    // Normal: 10/min + 50 bonus - distractions penalty
+    // Boost: -10 XP penalty
     const baseXP = data.isBoosted ? 0 : duration * 10;
-    const bonusXP = data.isBoosted ? 10 : 50;
+    const bonusXP = data.isBoosted ? -10 : 50;
     const penaltyXP = distractions * 5;
-    const totalXP = Math.max(0, baseXP + bonusXP - penaltyXP);
+    const totalXPChange = baseXP + bonusXP - penaltyXP;
 
-    // 4. Update User XP
+    // 4. Update User XP (Ensuring it doesn't go below 0)
     await db.update(users)
         .set({
-            xp: sql`${users.xp} + ${totalXP}`
+            xp: sql`GREATEST(0, ${users.xp} + ${totalXPChange})`
         })
         .where(eq(users.id, session.user.id));
 
@@ -110,5 +109,5 @@ export async function saveFocusSession(data: {
     revalidatePath("/dashboard");
     revalidatePath("/analytics");
 
-    return { success: true, xpEarned: totalXP };
+    return { success: true, xpEarned: totalXPChange };
 }

@@ -3,15 +3,12 @@
 import { db } from "@/db";
 import { dailyStats, focusSessions } from "@/db/schema";
 import { eq, sql, desc } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 
 import { generatePatternAnalysis } from "./analyze";
 
 export async function getAnalyticsData() {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const session = await getSession();
     if (!session) return null;
 
     // ... existing queries ...

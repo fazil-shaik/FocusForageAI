@@ -10,6 +10,30 @@ import { headers } from "next/headers";
 export async function generatePatternAnalysis(userId: string) {
     if (!userId) throw new Error("Unauthorized");
 
+    // Check Plan Limits (1 Analysis per day for free users)
+    const { eq, and, sql } = await import("drizzle-orm");
+    const { users } = await import("@/db/schema");
+
+    const user = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+    });
+
+    if (user?.plan === "free") {
+        const today = new Date().toISOString().split("T")[0];
+        // We can track this by "sessionsCompleted" or similar, but better is to have a dedicated log.
+        // For now, let's use a simpler heuristic or just allow 1 per day.
+        // I'll use redis to track this for faster checking if available, otherwise just implement a basic check.
+        const { redis } = await import("@/lib/redis");
+        const cacheKey = `limits:analysis:${userId}:${today}`;
+        const hasAnalyzed = await redis.get(cacheKey);
+
+        if (hasAnalyzed) {
+            throw new Error("LIMIT_REACHED: Daily limit of 1 AI Analysis reached for free users. Upgrade to Pro for unlimited insights.");
+        }
+
+        await redis.set(cacheKey, "true", "EX", 86400); // 1 day
+    }
+
     // Fetch Weekly Metrics (Simulated aggregation for now)
     const stats = await db.query.dailyStats.findMany({
         where: eq(dailyStats.userId, userId),

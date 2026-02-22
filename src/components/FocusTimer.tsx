@@ -2,9 +2,10 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RefreshCw, Zap, BrainCircuit, ChevronLeft, ChevronRight, Brain } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { saveFocusSession } from "@/app/(app)/focus/actions";
+import { toast } from "sonner";
 
 
 import { tasks } from "@/db/schema";
@@ -18,26 +19,42 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(recentTasks[0]?.id || null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const circleRef = useRef<SVGSVGElement>(null);
 
-    const [lastAwayTime, setLastAwayTime] = useState<number | null>(null);
+    const radius = 120;
+    const circumference = 2 * Math.PI * radius;
+
+    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
+        if (!isDragging || isPlaying || !circleRef.current) return;
+
+        const rect = circleRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+        const angle = Math.atan2(clientY - centerY, clientX - centerX);
+        let degrees = (angle * 180) / Math.PI + 90;
+        if (degrees < 0) degrees += 360;
+
+        const minutes = Math.max(1, Math.round((degrees / 360) * 120));
+        handleDurationChange(minutes);
+    };
 
     useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (document.hidden && isPlaying) {
-                setLastAwayTime(Date.now());
-            } else if (!document.hidden && isPlaying && lastAwayTime) {
-                const duration = (Date.now() - lastAwayTime) / 1000;
-                if (duration > 5) {
-                    // In dashboard, we just pause for simplicity vs a full modal
-                    setIsPlaying(false);
-                }
-                setLastAwayTime(null);
-            }
+        if (isDragging) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', () => setIsDragging(false));
+            window.addEventListener('touchmove', handleMouseMove);
+            window.addEventListener('touchend', () => setIsDragging(false));
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('touchmove', handleMouseMove);
         };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [isPlaying, lastAwayTime]);
+    }, [isDragging]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -47,18 +64,22 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
             }, 1000);
         } else if (timeLeft === 0 && isPlaying) {
             setIsPlaying(false);
-            // Auto-save session
             saveFocusSession({
-                duration: 25, // Default for now, could be dynamic
-                taskName: "Dashboard Timer Session"
-            }).then(() => {
-                // Could show toast here
-                console.log("Session saved");
+                duration: duration,
+                taskName: recentTasks.find(t => t.id === selectedTaskId)?.title || "Dashboard Timer Session",
+                taskId: selectedTaskId || undefined
+            }).then((res) => {
+                toast.success(`Session saved! +${res.xpEarned} XP earned.`);
+            }).catch(err => {
+                if (err.message.includes("LIMIT_REACHED")) {
+                    toast.error("Daily session limit reached. Upgrade to Pro!");
+                } else {
+                    toast.error("Failed to save session.");
+                }
             });
         }
         return () => clearInterval(interval);
     }, [isPlaying, timeLeft]);
-
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
@@ -87,24 +108,42 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
         const currentTask = recentTasks.find(t => t.id === selectedTaskId);
 
         try {
-            await saveFocusSession({
+            const res = await saveFocusSession({
                 duration: duration - Math.floor(timeLeft / 60),
                 taskName: currentTask?.title || "Boosted Session",
                 isBoosted: true,
                 taskId: selectedTaskId || undefined,
                 taskStatus: "in_progress"
             });
-            // Show some visual feedback/toast? 
+            toast.warning(`Boosted skip! ${res.xpEarned} XP deducted.`);
             setTimeLeft(0);
-        } catch (error) {
-            console.error("Boost failed", error);
+        } catch (error: any) {
+            if (error.message.includes("LIMIT_REACHED")) {
+                toast.error("Daily session limit reached. Upgrade to Pro!");
+            } else {
+                toast.error("Boost failed.");
+                console.error("Boost failed", error);
+            }
         } finally {
             setIsSaving(false);
         }
     };
 
+    // Calculate stroke logic
+    // When idle: show percentage of 120m max
+    // When playing: show percentage of session completed (0 -> 100%)
+    const maxDurationMinutes = 120;
+    const idleProgress = duration / maxDurationMinutes;
+    const sessionProgress = isPlaying ? (1 - (timeLeft / (duration * 60))) : idleProgress;
+    const strokeDashoffset = circumference - (sessionProgress * circumference);
+
+    // Knob position calculation
+    const currentAngle = (isPlaying ? (sessionProgress * 360) : (idleProgress * 360)) - 90;
+    const knobX = 140 + radius * Math.cos((currentAngle * Math.PI) / 180);
+    const knobY = 140 + radius * Math.sin((currentAngle * Math.PI) / 180);
+
     return (
-        <div className="lg:col-span-2 bg-card/50 rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[400px] border border-border backdrop-blur-md shadow-sm">
+        <div className="lg:col-span-2 bg-card/50 rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[500px] border border-border backdrop-blur-md shadow-sm">
             {/* Adaptive Mode Badge */}
             <div className={`absolute top-4 right-4 px-3 py-1 rounded-full border text-xs flex items-center gap-2 ${isPro ? 'bg-secondary/10 border-border text-muted-foreground' : 'bg-muted border-transparent text-muted-foreground opacity-70'}`}>
                 {isPro ? (
@@ -118,19 +157,78 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                 )}
             </div>
 
-            <motion.div
-                animate={{ scale: isPlaying ? [1, 1.05, 1] : 1 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="w-64 h-64 rounded-full border-4 border-muted/20 flex items-center justify-center relative mb-8"
-            >
-                <div className={`absolute inset-0 rounded-full border-4 border-t-primary border-r-accent border-b-transparent border-l-transparent rotate-45 transition-all duration-1000 ${isPlaying ? 'animate-spin-slow' : ''}`}></div>
-                {isPlaying && <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl animate-pulse"></div>}
+            <div className="relative w-72 h-72 flex items-center justify-center mb-12">
+                {/* SVG Circular Interaction */}
+                <svg
+                    ref={circleRef}
+                    className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
+                    viewBox="0 0 280 280"
+                >
+                    {/* Background Track */}
+                    <circle
+                        cx="140"
+                        cy="140"
+                        r={radius}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        className="text-muted/10"
+                    />
+                    {/* Progress Fill */}
+                    <motion.circle
+                        cx="140"
+                        cy="140"
+                        r={radius}
+                        fill="none"
+                        stroke="url(#timer-gradient)"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        initial={{ strokeDashoffset: circumference }}
+                        animate={{ strokeDashoffset }}
+                        transition={{ duration: isDragging ? 0 : (isPlaying ? 1 : 0.5), ease: "linear" }}
+                    />
+                    <defs>
+                        <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="var(--primary)" />
+                            <stop offset="100%" stopColor="#ec4899" />
+                        </linearGradient>
+                    </defs>
+                </svg>
 
-                <div className="text-center z-10">
-                    <div className="text-7xl font-bold tracking-tighter tabular-nums text-foreground">{formatTime(timeLeft)}</div>
-                    <div className="text-sm text-muted-foreground mt-2 font-medium tracking-widest uppercase">Deep Work</div>
-                </div>
-            </motion.div>
+                {/* Draggable Knob Handle */}
+                {!isPlaying && (
+                    <motion.div
+                        className="absolute w-6 h-6 bg-white rounded-full border-2 border-primary shadow-xl z-30 cursor-grab active:cursor-grabbing touch-none"
+                        style={{
+                            left: knobX - 12,
+                            top: knobY - 12,
+                        }}
+                        onMouseDown={() => setIsDragging(true)}
+                        onTouchStart={() => setIsDragging(true)}
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.9 }}
+                    />
+                )}
+
+                {/* Draggable Area Overlay */}
+                {!isPlaying && (
+                    <div
+                        onMouseDown={() => setIsDragging(true)}
+                        onTouchStart={() => setIsDragging(true)}
+                        className="absolute inset-0 z-20 rounded-full cursor-crosshair"
+                    />
+                )}
+
+                <motion.div
+                    animate={{ scale: isPlaying ? [1, 1.02, 1] : 1 }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="text-center z-10"
+                >
+                    <div className="text-7xl font-bold tracking-tighter tabular-nums text-foreground drop-shadow-sm">{formatTime(timeLeft)}</div>
+                    <div className="text-[10px] text-muted-foreground mt-2 font-black tracking-[0.2em] uppercase">Deep Work</div>
+                </motion.div>
+            </div>
 
             <div className="flex items-center gap-6 z-10">
                 <button
@@ -154,22 +252,24 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                         {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
                     </button>
 
-                    {/* Boost Button Overlay - Styled more creatively */}
+                    {/* Boost Button - Moved further down and styled closer to requested 'handy' feel */}
                     <AnimatePresence>
                         {isPlaying && (
-                            <motion.button
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: -60, opacity: 1 }}
-                                exit={{ y: 20, opacity: 0 }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleBoost();
-                                }}
-                                className="absolute left-1/2 -translate-x-1/2 bg-accent text-accent-foreground px-6 py-2 rounded-full text-[11px] font-black shadow-2xl hover:scale-110 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/20 whitespace-nowrap z-0 group"
-                            >
-                                <Zap className="w-3.5 h-3.5 fill-current animate-pulse group-hover:animate-bounce" />
-                                BOOST SKIP (-10 XP)
-                            </motion.button>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-12 z-50">
+                                <motion.button
+                                    initial={{ y: -20, scale: 0.5, opacity: 0 }}
+                                    animate={{ y: 0, scale: 1, opacity: 1 }}
+                                    exit={{ y: -20, scale: 0.5, opacity: 0 }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleBoost();
+                                    }}
+                                    className="bg-accent hover:bg-accent/90 text-white px-5 py-2.5 rounded-2xl text-[10px] font-black shadow-[0_0_30px_rgba(236,72,153,0.4)] transition-all flex items-center gap-2 border border-white/20 whitespace-nowrap group hover:scale-105 active:scale-95"
+                                >
+                                    <Zap className="w-3.5 h-3.5 fill-current" />
+                                    BOOST SESSION (+10 XP)
+                                </motion.button>
+                            </div>
                         )}
                     </AnimatePresence>
                 </div>
@@ -184,38 +284,20 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                 </button>
             </div>
 
-            {/* Interactive Timer Shift (Handy Slider) */}
+            {/* Hint for dragging */}
             {!isPlaying && (
-                <div className="mt-8 w-full max-w-xs space-y-4">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
-                        <span>1m</span>
-                        <span>Shift Duration</span>
-                        <span>120m</span>
-                    </div>
-                    <div className="relative h-2 bg-secondary/20 rounded-full group cursor-pointer">
-                        <input
-                            type="range"
-                            min="1"
-                            max="120"
-                            value={duration}
-                            onChange={(e) => handleDurationChange(parseInt(e.target.value))}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        />
-                        <motion.div
-                            className="absolute left-0 top-0 h-full bg-primary rounded-full"
-                            style={{ width: `${(duration / 120) * 100}%` }}
-                        />
-                        <motion.div
-                            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full border-2 border-primary shadow-md"
-                            style={{ left: `calc(${(duration / 120) * 100}% - 8px)` }}
-                        />
-                    </div>
-                </div>
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="mt-6 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.1em]"
+                >
+                    Drag the circle or click icons to shift
+                </motion.p>
             )}
 
             {/* Task Selector */}
             {recentTasks.length > 0 && !isPlaying && (
-                <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-md">
+                <div className="mt-4 flex flex-wrap justify-center gap-2 max-w-md">
                     {recentTasks.map(task => (
                         <button
                             key={task.id}
@@ -228,8 +310,8 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                 </div>
             )}
 
-            <p className="mt-8 text-sm text-muted-foreground max-w-sm text-center italic">
-                "The only way to do great work is to love what you do." - Steve Jobs
+            <p className="mt-8 text-[11px] text-muted-foreground/40 max-w-xs text-center italic">
+                "The only way to do great work is to love what you do."
             </p>
 
             {/* Background decoration */}
@@ -237,3 +319,4 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
         </div>
     );
 }
+

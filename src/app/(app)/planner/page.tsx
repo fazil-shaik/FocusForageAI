@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, Sparkles, Clock, Battery, ListTodo } from "lucide-react";
 import { savePlanToTasks } from "./actions";
+import { toast } from "sonner";
 
 export default function PlannerPage() {
     const [tasks, setTasks] = useState("");
@@ -21,10 +22,14 @@ export default function PlannerPage() {
                 body: JSON.stringify({ tasks: taskList, availableTime, energyLevel }),
             });
             const data = await res.json();
+            if (data.error && data.error === "LIMIT_REACHED") {
+                toast.error("AI Insights limit reached. Upgrade to Pro!");
+                return;
+            }
             setPlan(data);
         } catch (error) {
             console.error(error);
-            alert("Failed to generate plan");
+            toast.error("Failed to generate plan");
         } finally {
             setLoading(false);
         }
@@ -130,7 +135,18 @@ export default function PlannerPage() {
                             </div>
 
                             <button
-                                onClick={() => savePlanToTasks(plan)}
+                                onClick={async () => {
+                                    try {
+                                        await savePlanToTasks(plan);
+                                        toast.success("Plan saved to tasks!");
+                                    } catch (error: any) {
+                                        if (error.message.includes("LIMIT_REACHED")) {
+                                            toast.error("Daily planning limit reached. Upgrade to Pro!");
+                                        } else {
+                                            toast.error("Failed to save plan.");
+                                        }
+                                    }
+                                }}
                                 className="w-full py-4 rounded-full bg-secondary text-secondary-foreground font-bold hover:bg-secondary/80 transition-all flex items-center justify-center gap-2 border border-border shadow-sm hover:shadow-md"
                             >
                                 <ListTodo className="w-5 h-5" /> Save Execution Plan to Tasks
