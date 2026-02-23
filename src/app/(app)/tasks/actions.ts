@@ -13,11 +13,14 @@ export async function getTasks() {
     const session = await getSession();
     if (!session) return [];
 
-    const { ne } = await import("drizzle-orm");
+    const { ne, or, isNull } = await import("drizzle-orm");
     return await db.query.tasks.findMany({
         where: and(
             eq(tasks.userId, session.user.id),
-            ne(tasks.status, "done")
+            or(
+                ne(tasks.status, "done"),
+                isNull(tasks.status)
+            )
         ),
     });
 }

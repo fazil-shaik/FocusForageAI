@@ -135,18 +135,19 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
 
         if (!overId) return;
 
-        const activeContainer = findContainer(activeId);
         const overContainer = findContainer(overId);
 
+        // ALWAYS vanish if dropped in 'done'
+        if (overContainer === 'done') {
+            setTasks(prev => prev.filter(t => t.id !== activeId));
+            toast.success("Task completed!");
+            await updateTaskStatus(activeId, 'done');
+            return;
+        }
+
+        const activeContainer = findContainer(activeId);
         if (activeContainer !== overContainer) {
-            // Moved to a different column
-            if (overContainer === 'done') {
-                // Instantly remove from UI to "vanish"
-                setTasks(prev => prev.filter(t => t.id !== activeId));
-                toast.success("Task completed!");
-            } else {
-                setTasks((prev) => prev.map(t => t.id === activeId ? { ...t, status: overContainer } : t));
-            }
+            setTasks((prev) => prev.map(t => t.id === activeId ? { ...t, status: overContainer } : t));
             await updateTaskStatus(activeId, overContainer);
         }
     };
