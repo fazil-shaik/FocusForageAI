@@ -204,12 +204,6 @@ export default function LandingPage() {
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full translate-x-1/3 translate-y-1/3"></div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 bg-background border-t border-border">
-        <div className="container mx-auto px-6 text-center text-muted-foreground font-medium">
-          <p>&copy; 2026 FocusForge AI. Made with 🧡 and 🧠.</p>
-        </div>
-      </footer>
     </div>
   );
 }

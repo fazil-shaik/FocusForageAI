@@ -19,7 +19,7 @@ export default function MarketingLayout({
                 </main>
                 <footer className="border-t border-border bg-card py-8">
                     <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-                        © {new Date().getFullYear()} FocusForge AI. Made with 🧡 and 🧠.
+                        © {new Date().getFullYear()} FocusForge AI. All rights reserved.
                     </div>
                 </footer>
             </div>
