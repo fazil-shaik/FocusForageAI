@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Brain, CheckCircle, Volume2, Maximize2, X, AlertTriangle, Activity, ChevronRight, Zap, Target, Battery, BrainCircuit, Waves, Clock, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { startFocusSession, updateFocusHeartbeat, endFocusSession } from "./actions";
 import { toast } from "sonner";
 import { MentalState } from "@/lib/xp-engine";
@@ -30,6 +31,7 @@ export default function FocusSession() {
     const [isSaving, setIsSaving] = useState(false);
     const [sessionGoal, setSessionGoal] = useState("");
     const [sessionId, setSessionId] = useState<string | null>(null);
+    const router = useRouter();
 
     // Activity tracking refs
     const lastActivityTime = useRef(Date.now());
@@ -145,7 +147,18 @@ export default function FocusSession() {
                 taskName: sessionGoal,
                 allowedDomains: [],
                 blockedDomains: [],
-            });
+            }) as any;
+
+            if (res.error === "limit_reached") {
+                toast.error(`Daily limit reached (${res.limit} sessions). Upgrade to Pro for unlimited focus! ⚡`, {
+                    action: {
+                        label: "Upgrade",
+                        onClick: () => router.push("/pricing")
+                    }
+                });
+                return;
+            }
+
             setSessionId(res.sessionId);
             setTimeLeft(duration * 60);
             setStep("timer");

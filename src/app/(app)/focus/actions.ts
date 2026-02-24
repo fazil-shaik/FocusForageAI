@@ -8,6 +8,9 @@ import { revalidatePath } from "next/cache";
 import { redis } from "@/lib/redis";
 import { calculateXPChange, MentalState } from "@/lib/xp-engine";
 
+const FREE_DAILY_LIMIT = 3;
+const PRO_DAILY_LIMIT = 999;
+
 export async function startFocusSession(data: {
     duration: number; // in minutes
     mentalState: MentalState;
@@ -23,6 +26,18 @@ export async function startFocusSession(data: {
         where: eq(users.id, session.user.id),
     });
 
+    const plan = dbUser?.plan || "free";
+    const limit = plan === "pro" ? PRO_DAILY_LIMIT : FREE_DAILY_LIMIT;
+    const today = new Date().toISOString().split("T")[0];
+    const limitKey = `session_limit:${session.user.id}:${today}`;
+
+    const currentCount = await redis.get(limitKey);
+    const count = currentCount ? parseInt(currentCount) : 0;
+
+    if (count >= limit) {
+        return { error: "limit_reached", limit };
+    }
+
     const xpStart = dbUser?.xp || 0;
 
     // 1. Create Postgres Entry
@@ -37,6 +52,10 @@ export async function startFocusSession(data: {
         allowedDomains: data.allowedDomains,
         blockedDomains: data.blockedDomains,
     }).returning();
+
+    // 1.5 Increment Daily Session Counter
+    await redis.incr(limitKey);
+    await redis.expire(limitKey, 86400); // 1 day
 
     // 2. Initialize Redis State
     const sessionKey = `focus:session:${session.user.id}`;

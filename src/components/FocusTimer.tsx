@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RefreshCw, Zap, BrainCircuit, ChevronLeft, ChevronRight, Brain } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { startFocusSession, endFocusSession, updateFocusHeartbeat, getPreSessionAdjustment } from "@/app/(app)/focus/actions";
 import { toast } from "sonner";
 import { MentalState } from "@/lib/xp-engine";
@@ -22,6 +23,7 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
     const [isSaving, setIsSaving] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
+    const router = useRouter();
     const [mentalState, setMentalState] = useState<MentalState>("Neutral");
     const [aiAdjustment, setAiAdjustment] = useState<{
         duration: number;
@@ -149,8 +151,20 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                     taskId: selectedTaskId || undefined,
                     allowedDomains: [],
                     blockedDomains: []
-                });
-                setSessionId(res.sessionId);
+                }) as any;
+
+                if (res.error === "limit_reached") {
+                    toast.error(`Daily limit reached (${res.limit} sessions). Upgrade to Pro for unlimited focus! ⚡`, {
+                        action: {
+                            label: "Upgrade",
+                            onClick: () => router.push("/pricing")
+                        }
+                    });
+                    return;
+                }
+
+                const sessionId = res.sessionId;
+                setSessionId(sessionId);
                 setIsPlaying(true);
                 toast.success("Focus started!");
             } catch (err) {

@@ -29,7 +29,7 @@ export function DailyReportModal({ isOpen, onClose }: DailyReportModalProps) {
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -42,8 +42,10 @@ export function DailyReportModal({ isOpen, onClose }: DailyReportModalProps) {
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-2xl bg-card border border-border shadow-2xl rounded-[2.5rem] overflow-hidden"
+                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                    className="relative w-full max-w-2xl bg-card border border-white/10 shadow-[0_32px_128px_rgba(0,0,0,0.8)] rounded-[2.5rem] overflow-hidden flex flex-col"
                 >
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
                     {/* Header */}
                     <div className="p-8 border-b border-border flex items-center justify-between bg-secondary/5">
                         <div className="flex items-center gap-4">

@@ -128,7 +128,17 @@ export default async function Dashboard() {
                         </div>
                     </div>
                 </div>
-                <DashboardControls />
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                    {user.plan === "pro" && (
+                        <Link
+                            href="mailto:fazilshaik103@gmail.com?subject=Priority Support Request"
+                            className="text-[10px] font-black text-primary border border-primary/20 bg-primary/10 px-4 py-2.5 rounded-xl hover:bg-primary/20 transition-all flex items-center gap-2 shadow-lg shadow-primary/5 group"
+                        >
+                            <Zap className="w-3 h-3 fill-current group-hover:scale-125 transition-transform" /> Priority Support
+                        </Link>
+                    )}
+                    <DashboardControls userPlan={user.plan || "free"} />
+                </div>
             </header>
 
             {/* Main Grid */}
