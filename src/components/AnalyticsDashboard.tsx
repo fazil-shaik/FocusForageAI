@@ -111,7 +111,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                                 <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-secondary/5 hover:bg-secondary/10 transition-colors border border-transparent hover:border-border">
                                     <div>
                                         <p className="font-bold text-sm text-foreground">{session.taskName}</p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground" suppressHydrationWarning>
                                             {session.startTime ? new Date(session.startTime).toLocaleDateString('en-US') : 'Unknown Date'}
                                         </p>
                                     </div>

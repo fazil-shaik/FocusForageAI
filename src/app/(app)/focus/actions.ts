@@ -122,6 +122,7 @@ export async function updateFocusHeartbeat(data: {
 export async function endFocusSession(data: {
     status: "completed" | "abandoned";
     taskId?: string;
+    isBoosted?: boolean;
 }) {
     const session = await getSession();
     if (!session) throw new Error("Unauthorized");
@@ -144,7 +145,7 @@ export async function endFocusSession(data: {
         durationMinutes: totalDuration,
         mentalState: activeSession.mentalState as MentalState,
         distractionCount,
-        isBoosted: false,
+        isBoosted: !!data.isBoosted,
         isCompleted: data.status === "completed"
     });
 
@@ -153,6 +154,7 @@ export async function endFocusSession(data: {
         .set({
             endTime: new Date(),
             status: data.status,
+            isBoosted: !!data.isBoosted,
             distractionCount: distractionCount,
             distractionEvents: parsedEvents,
             idleTime: parseInt(activeSession.idleTime),

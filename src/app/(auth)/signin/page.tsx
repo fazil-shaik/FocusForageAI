@@ -1,7 +1,7 @@
 "use client";
 
 import { authClient } from "@/lib/auth-client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -13,9 +13,11 @@ export default function SignIn() {
     const router = useRouter();
     const { data: session } = authClient.useSession();
 
-    if (session) {
-        router.push("/dashboard");
-    }
+    useEffect(() => {
+        if (session) {
+            router.push("/dashboard");
+        }
+    }, [session, router]);
 
     const handleSignIn = async () => {
         setLoading(true);

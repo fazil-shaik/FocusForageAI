@@ -128,12 +128,17 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                         emotion: mentalState,
                         taskId: selectedTaskId || undefined
                     });
-                    const parsedDuration = parseInt(String(adjustment.duration)) || 25;
-                    setAiAdjustment(adjustment);
+                    const parsedDuration = parseInt(String(adjustment.duration || adjustment.session_duration)) || 25;
+                    const instruction = adjustment.instruction || adjustment.starting_instruction || "Focus on the first small step.";
+                    setAiAdjustment({
+                        ...adjustment,
+                        duration: parsedDuration,
+                        instruction
+                    });
                     setDuration(parsedDuration);
                     setTimeLeft(parsedDuration * 60);
                     setIsAdjusting(false);
-                    toast.info(`AI Suggestion: ${adjustment.instruction}`);
+                    toast.info(`AI Suggestion: ${instruction}`);
                     return; // Let user review adjustment before clicking Play again
                 }
 
@@ -179,7 +184,8 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
         try {
             const res = await endFocusSession({
                 status: "completed",
-                taskId: selectedTaskId || undefined
+                taskId: selectedTaskId || undefined,
+                isBoosted: true
             });
             toast.warning(`Boosted skip! ${res.xpEarned} XP change.`);
             setTimeLeft(0);
