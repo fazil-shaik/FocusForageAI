@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        const plan = await generateDeepWorkPlan(tasks, availableTime, energyLevel);
+        const plan = await generateDeepWorkPlan(session.user.id, tasks as string[], availableTime, energyLevel);
         return NextResponse.json(plan);
     } catch (error) {
         console.error("Planner API Error:", error);

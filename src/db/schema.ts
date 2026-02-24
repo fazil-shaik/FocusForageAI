@@ -89,6 +89,7 @@ export const tasks = pgTable("task", {
 	createdAt: timestamp("created_at").defaultNow(),
 });
 
+
 export const dailyStats = pgTable("daily_stats", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	userId: text("user_id").notNull().references(() => users.id),
@@ -97,4 +98,19 @@ export const dailyStats = pgTable("daily_stats", {
 	sessionsCompleted: integer("sessions_completed").default(0),
 	distractionCount: integer("distraction_count").default(0),
 	moodScore: integer("mood_score"), // 1-10 average
+});
+
+export const userMemories = pgTable("user_memory", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	userId: text("user_id").notNull().references(() => users.id).unique(),
+	behavioralSummary: text("behavioral_summary"), // The 150-word memory vector
+	lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export const aiInsights = pgTable("ai_insight", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	userId: text("user_id").notNull().references(() => users.id),
+	type: text("type").notNull(), // 'weekly_report', 'pattern_analysis', 'daily_nudge'
+	content: jsonb("content").notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
 });

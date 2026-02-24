@@ -195,5 +195,37 @@ export async function endFocusSession(data: {
     return { xpEarned: xpChange };
 }
 
-// Deprecated old action replaced by endFocusSession for compatibility if needed
-// export async function saveFocusSession(...) { ... }
+export async function getPreSessionAdjustment(data: {
+    emotion: string;
+    taskId?: string;
+}) {
+    const session = await getSession();
+    if (!session) throw new Error("Unauthorized");
+
+    const { adjustFocusSession } = await import("@/lib/ai-orchestrator");
+
+    // Fetch recent session history for context
+    const recentHistory = await db.query.focusSessions.findMany({
+        where: eq(focusSessions.userId, session.user.id),
+        orderBy: [sql`${focusSessions.startTime} DESC`],
+        limit: 3,
+    });
+
+    const performance_history = recentHistory.length > 0
+        ? recentHistory.map(h => `${h.taskName}: ${h.status} (${h.duration}m)`).join(", ")
+        : "No recent history";
+
+    const task = data.taskId
+        ? await db.query.tasks.findFirst({ where: eq(tasks.id, data.taskId) })
+        : null;
+
+    const adjustment = await adjustFocusSession({
+        userId: session.user.id,
+        performance_history,
+        emotion: data.emotion,
+        current_time: new Date().toLocaleTimeString(),
+        difficulty: task?.priority || "medium"
+    });
+
+    return adjustment;
+}

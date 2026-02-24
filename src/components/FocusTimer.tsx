@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RefreshCw, Zap, BrainCircuit, ChevronLeft, ChevronRight, Brain } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { startFocusSession, endFocusSession, updateFocusHeartbeat } from "@/app/(app)/focus/actions";
+import { startFocusSession, endFocusSession, updateFocusHeartbeat, getPreSessionAdjustment } from "@/app/(app)/focus/actions";
 import { toast } from "sonner";
 import { MentalState } from "@/lib/xp-engine";
 
@@ -23,6 +23,14 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
     const [isDragging, setIsDragging] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [mentalState, setMentalState] = useState<MentalState>("Neutral");
+    const [aiAdjustment, setAiAdjustment] = useState<{
+        duration: number;
+        break: number;
+        reduce_intensity: string;
+        reward: string;
+        instruction: string;
+    } | null>(null);
+    const [isAdjusting, setIsAdjusting] = useState(false);
 
     const circleRef = useRef<SVGSVGElement>(null);
     const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
@@ -114,6 +122,21 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
         if (!isPlaying) {
             // Starting session
             try {
+                if (isPro && !aiAdjustment) {
+                    setIsAdjusting(true);
+                    const adjustment = await getPreSessionAdjustment({
+                        emotion: mentalState,
+                        taskId: selectedTaskId || undefined
+                    });
+                    const parsedDuration = parseInt(String(adjustment.duration)) || 25;
+                    setAiAdjustment(adjustment);
+                    setDuration(parsedDuration);
+                    setTimeLeft(parsedDuration * 60);
+                    setIsAdjusting(false);
+                    toast.info(`AI Suggestion: ${adjustment.instruction}`);
+                    return; // Let user review adjustment before clicking Play again
+                }
+
                 const res = await startFocusSession({
                     duration,
                     mentalState,
@@ -127,6 +150,7 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                 toast.success("Focus started!");
             } catch (err) {
                 toast.error("Failed to start session.");
+                setIsAdjusting(false);
             }
         } else {
             // Pausing/Stopping (Treat as interim completion for simplicity in dashboard)
@@ -178,8 +202,9 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
 
     // Knob position calculation
     const currentAngle = (isPlaying ? (sessionProgress * 360) : (idleProgress * 360)) - 90;
-    const knobX = 140 + radius * Math.cos((currentAngle * Math.PI) / 180);
-    const knobY = 140 + radius * Math.sin((currentAngle * Math.PI) / 180);
+    const isValid = !isNaN(currentAngle) && isFinite(currentAngle);
+    const knobX = isValid ? 140 + radius * Math.cos((currentAngle * Math.PI) / 180) : 140;
+    const knobY = isValid ? 140 + radius * Math.sin((currentAngle * Math.PI) / 180) : 140;
 
     return (
         <div className="lg:col-span-2 bg-card/50 rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[500px] border border-border backdrop-blur-md shadow-sm">
@@ -272,7 +297,9 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                     className="text-center z-10"
                 >
                     <div className="text-7xl font-bold tracking-tighter tabular-nums text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">{formatTime(timeLeft)}</div>
-                    <div className="text-[10px] text-muted-foreground mt-2 font-black tracking-[0.2em] uppercase opacity-70">Deep Work</div>
+                    <div className="text-[10px] text-muted-foreground mt-2 font-black tracking-[0.2em] uppercase opacity-70">
+                        {aiAdjustment && !isPlaying ? `AI Ready: ${aiAdjustment.instruction}` : "Deep Work"}
+                    </div>
                 </motion.div>
             </div>
 

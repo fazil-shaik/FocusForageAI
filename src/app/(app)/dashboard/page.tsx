@@ -87,6 +87,7 @@ export default async function Dashboard() {
     const userFirstName = user.name?.split(" ")[0] || "User";
 
     const aiInsight = await generateDynamicInsight({
+        userId: user.id,
         userPlan: user.plan || "free",
         userName: userFirstName,
         metrics,

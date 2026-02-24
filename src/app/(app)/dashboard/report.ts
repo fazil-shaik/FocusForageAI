@@ -76,3 +76,52 @@ export async function getDailyReportData() {
         xpEarnedToday: (stats?.totalDeepWorkMinutes || 0) * 10 + (stats?.sessionsCompleted || 0) * 50 - (stats?.distractionCount || 0) * 5
     };
 }
+
+export async function generateWeeklyAIReport() {
+    const session = await getSession();
+    if (!session) throw new Error("Unauthorized");
+
+    const { generateWeeklyReport } = await import("@/lib/ai-orchestrator");
+
+    // Fetch last 7 days of stats
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
+
+    const stats = await db.query.dailyStats.findMany({
+        where: and(
+            eq(dailyStats.userId, session.user.id),
+            sql`${dailyStats.date} >= ${sevenDaysAgoStr}`
+        ),
+    });
+
+    const sessions = await db.query.focusSessions.findMany({
+        where: and(
+            eq(focusSessions.userId, session.user.id),
+            eq(focusSessions.status, "completed"),
+            sql`${focusSessions.startTime} >= ${sevenDaysAgo}`
+        ),
+    });
+
+    // Aggregating data for AI
+    const deep_hours = Math.round(stats.reduce((acc, s) => acc + (s.totalDeepWorkMinutes || 0), 0) / 60);
+    const distraction_count = stats.reduce((acc, s) => acc + (s.distractionCount || 0), 0);
+
+    // Find most productive time slot (simple bucket logic)
+    const hourBuckets: Record<number, number> = {};
+    sessions.forEach(s => {
+        const hour = s.startTime.getHours();
+        hourBuckets[hour] = (hourBuckets[hour] || 0) + (s.duration || 0);
+    });
+    const best_time = Object.entries(hourBuckets).sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown";
+
+    const report = await generateWeeklyReport(session.user.id, {
+        deep_hours,
+        best_time: `${best_time}:00`,
+        avoided_task: "Complex Engineering", // Placeholder for now
+        distraction_time: "Late Afternoon", // Placeholder
+        emotion_pattern: "Anxious when facing large tasks", // Placeholder
+    });
+
+    return report;
+}
