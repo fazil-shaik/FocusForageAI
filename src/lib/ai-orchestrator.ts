@@ -48,9 +48,8 @@ export async function generateDailyInsight(data: {
         sessions: any[];
     };
     xp: number;
-    userPlan: string;
 }) {
-    const { userId, userName, metrics, xp, userPlan } = data;
+    const { userId, userName, metrics, xp } = data;
     const memory = await getBehavioralMemory(userId);
 
     const prompt = `
@@ -62,7 +61,7 @@ ${memory}
 Current Context:
 - User: ${userName}
 - XP: ${xp}
-- Plan: ${userPlan}
+- Plan: pro
 - Recent Stats: ${JSON.stringify(metrics.stats.slice(0, 3))}
 - Recent Sessions: ${JSON.stringify(metrics.sessions.slice(0, 3))}
 

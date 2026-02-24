@@ -63,7 +63,7 @@ export function PricingCard({ title, price, description, features, isPro = false
                     } ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
             >
                 {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-                {isPro ? "Upgrade to Pro" : "Current Plan"}
+                {isPro ? "Get Started" : "Current Plan"}
             </button>
         </motion.div>
     );

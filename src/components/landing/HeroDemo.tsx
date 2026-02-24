@@ -205,7 +205,7 @@ export function HeroDemo() {
                         <div className="flex items-center gap-4">
                             <div className="text-right">
                                 <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5">Shaib P.</div>
-                                <div className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">Pro Plan</div>
+                                <div className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">Unlimited Access</div>
                             </div>
                             <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black text-lg shadow-lg border border-white/10 ring-2 ring-white/5">SP</div>
                         </div>

@@ -161,11 +161,7 @@ export default function PlannerPage() {
                                         const newCredits = await getPlannerCredits();
                                         setCredits(newCredits);
                                     } catch (error: any) {
-                                        if (error.message.includes("LIMIT_REACHED")) {
-                                            toast.error("Daily planning limit reached. Upgrade to Pro!");
-                                        } else {
-                                            toast.error("Failed to save plan.");
-                                        }
+                                        toast.error("Failed to save plan.");
                                     }
                                 }}
                                 className="w-full py-4 rounded-full bg-secondary text-secondary-foreground font-bold hover:bg-secondary/80 transition-all flex items-center justify-center gap-2 border border-border shadow-sm hover:shadow-md"
