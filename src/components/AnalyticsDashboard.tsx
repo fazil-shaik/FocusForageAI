@@ -140,20 +140,13 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                             <p className="text-sm text-muted-foreground font-medium">AI-powered cognitive pattern mapping</p>
                         </div>
                     </div>
-                    {data.userPlan !== 'pro' ? (
-                        <div className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">
-                            <Zap className="w-3.5 h-3.5 fill-current" />
-                            PRO Access
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2 px-4 py-1.5 bg-secondary/10 text-secondary border border-secondary/20 rounded-full text-[10px] font-black uppercase tracking-widest">
-                            <Sparkles className="w-3.5 h-3.5" />
-                            Live Analysis
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2 px-4 py-1.5 bg-secondary/10 text-secondary border border-secondary/20 rounded-full text-[10px] font-black uppercase tracking-widest">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Live Analysis
+                    </div>
                 </div>
 
-                <div className={data.userPlan === 'pro' ? '' : 'blur-xl select-none opacity-40 pointer-events-none'}>
+                <div>
                     {data.behavioralAnalysis ? (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-0">
                             <div className="space-y-8">
@@ -246,20 +239,6 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                     )}
                 </div>
 
-                {data.userPlan !== 'pro' && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/20 backdrop-blur-xl transition-all">
-                        <div className="text-center p-10 bg-card/80 border border-white/10 rounded-[3rem] shadow-[0_32px_64px_rgba(0,0,0,0.4)] max-w-sm backdrop-blur-2xl">
-                            <div className="w-20 h-20 bg-primary/20 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
-                                <Zap className="w-10 h-10 fill-current" />
-                            </div>
-                            <h4 className="text-3xl font-black mb-3 tracking-tight">Neural Insights Locked</h4>
-                            <p className="text-muted-foreground text-sm font-medium mb-8 leading-relaxed">Upgrade to Pro to unlock advanced behavioral patterns and AI-driven correction strategies.</p>
-                            <Link href="/pricing" className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-primary-foreground font-black rounded-2xl hover:scale-105 transition-all shadow-xl shadow-primary/30 active:scale-95">
-                                Unlock Pro ⚡
-                            </Link>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

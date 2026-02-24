@@ -129,15 +129,13 @@ export default async function Dashboard() {
                     </div>
                 </div>
                 <div className="flex flex-col md:flex-row items-center gap-4">
-                    {user.plan === "pro" && (
-                        <Link
-                            href="mailto:fazilshaik103@gmail.com?subject=Priority Support Request"
-                            className="text-[10px] font-black text-primary border border-primary/20 bg-primary/10 px-4 py-2.5 rounded-xl hover:bg-primary/20 transition-all flex items-center gap-2 shadow-lg shadow-primary/5 group"
-                        >
-                            <Zap className="w-3 h-3 fill-current group-hover:scale-125 transition-transform" /> Priority Support
-                        </Link>
-                    )}
-                    <DashboardControls userPlan={user.plan || "free"} />
+                    <Link
+                        href="mailto:fazilshaik103@gmail.com?subject=Priority Support Request"
+                        className="text-[10px] font-black text-primary border border-primary/20 bg-primary/10 px-4 py-2.5 rounded-xl hover:bg-primary/20 transition-all flex items-center gap-2 shadow-lg shadow-primary/5 group"
+                    >
+                        <Zap className="w-3 h-3 fill-current group-hover:scale-125 transition-transform" /> Priority Support
+                    </Link>
+                    <DashboardControls userPlan="pro" />
                 </div>
             </header>
 
@@ -160,29 +158,11 @@ export default async function Dashboard() {
                             <span className="flex items-center gap-2">
                                 <BrainCircuit className="w-4 h-4 text-primary animate-pulse" /> AI Insight
                             </span>
-                            {user.plan !== "pro" && (
-                                <Link href="/pricing" className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors shadow-sm">
-                                    PRO
-                                </Link>
-                            )}
                         </h3>
 
-                        {user.plan === "pro" ? (
-                            <p className="text-sm leading-relaxed text-foreground font-medium italic opacity-90 group-hover:opacity-100 transition-opacity">
-                                "{aiInsight}"
-                            </p>
-                        ) : (
-                            <div className="relative">
-                                <p className="text-sm leading-relaxed text-foreground/50 font-medium italic blur-[2px] select-none">
-                                    "Your neuro-activity suggests a peak in focus during afternoon sessions. Recommendation: Schedule high-complexity tasks between 2 PM and 4 PM..."
-                                </p>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <Link href="/pricing" className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1 rounded-lg border border-primary/20 hover:bg-primary/20 transition-all opacity-0 group-hover:opacity-100">
-                                        REVEAL INSIGHT ⚡
-                                    </Link>
-                                </div>
-                            </div>
-                        )}
+                        <p className="text-sm leading-relaxed text-foreground font-medium italic opacity-90 group-hover:opacity-100 transition-opacity">
+                            "{aiInsight}"
+                        </p>
                     </div>
 
                     {/* Task List Preview */}

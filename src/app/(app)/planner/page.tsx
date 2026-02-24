@@ -18,10 +18,6 @@ export default function PlannerPage() {
     }, []);
 
     const handleGenerate = async () => {
-        if (credits && credits.plan === 'free' && credits.count <= 0) {
-            toast.error("You have no planning credits left for today. Upgrade to Pro for unlimited access!");
-            return;
-        }
 
         setLoading(true);
         try {
@@ -32,12 +28,6 @@ export default function PlannerPage() {
                 body: JSON.stringify({ tasks: taskList, availableTime, energyLevel }),
             });
             const data = await res.json();
-            if (data.error && data.error === "LIMIT_REACHED") {
-                toast.error("Daily planning limit reached. Upgrade to Pro!");
-                // Refresh credits to ensure UI is in sync
-                getPlannerCredits().then(setCredits);
-                return;
-            }
             if (data.error) {
                 toast.error(data.error);
                 return;
@@ -64,20 +54,18 @@ export default function PlannerPage() {
                         Input your tasks and let AI build your perfect flow state schedule.
                     </p>
                 </div>
-                {credits && (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-2xl backdrop-blur-sm shadow-sm group hover:scale-105 transition-transform cursor-default">
-                        <Zap className="w-4 h-4 text-primary fill-current" />
-                        <span className="text-xs font-black text-primary tracking-widest uppercase">
-                            {credits.plan === 'pro' ? 'Unlimited' : `${credits.count}/${credits.total}`} Credits
-                        </span>
-                    </div>
-                )}
+                <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-2xl backdrop-blur-sm shadow-sm group hover:scale-105 transition-transform cursor-default">
+                    <Zap className="w-4 h-4 text-primary fill-current" />
+                    <span className="text-xs font-black text-primary tracking-widest uppercase">
+                        Unlimited Credits
+                    </span>
+                </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Input Form */}
                 <div className="relative group">
-                    <div className={`bg-card p-6 rounded-3xl space-y-6 border border-border shadow-sm transition-all ${credits?.plan === 'free' && credits?.count <= 0 ? 'opacity-40 grayscale blur-[2px] pointer-events-none' : ''}`}>
+                    <div className={`bg-card p-6 rounded-3xl space-y-6 border border-border shadow-sm transition-all`}>
                         <div>
                             <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
                                 <ListTodo className="w-4 h-4 text-primary" /> Tasks (One per line)
@@ -125,36 +113,13 @@ export default function PlannerPage() {
 
                         <button
                             onClick={handleGenerate}
-                            disabled={loading || !tasks || (credits?.plan === 'free' && credits?.count <= 0)}
+                            disabled={loading || !tasks}
                             className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Sparkles className="w-5 h-5" /> Generate Plan</>}
                         </button>
                     </div>
 
-                    {/* UPGRADE PROMPT */}
-                    {credits?.plan === 'free' && credits?.count <= 0 && (
-                        <div className="absolute inset-0 z-10 flex items-center justify-center p-6 text-center">
-                            <div className="bg-card/80 backdrop-blur-xl border border-primary/20 p-8 rounded-[2.5rem] shadow-2xl max-w-sm animate-in zoom-in-95 duration-300">
-                                <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
-                                    <Zap className="w-8 h-8 text-white fill-current" />
-                                </div>
-                                <h3 className="text-2xl font-black tracking-tight text-foreground mb-3">Limit Reached</h3>
-                                <p className="text-muted-foreground font-medium mb-8 leading-relaxed">
-                                    You've used your AI plan for today. Upgrade to <span className="text-primary font-bold">Pro</span> for unlimited architecture and deep work mapping.
-                                </p>
-                                <a
-                                    href="/pricing"
-                                    className="block w-full py-4 rounded-full bg-primary text-primary-foreground font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-xl shadow-primary/20"
-                                >
-                                    Unlock Pro Access ⚡
-                                </a>
-                                <p className="text-[10px] text-muted-foreground mt-4 font-bold uppercase tracking-widest">
-                                    Resets in 24 hours
-                                </p>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Results View */}
@@ -216,6 +181,6 @@ export default function PlannerPage() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

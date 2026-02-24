@@ -15,7 +15,7 @@ import { tasks } from "@/db/schema";
 type Task = typeof tasks.$inferSelect;
 
 export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?: string; recentTasks?: Task[] }) {
-    const isPro = userPlan === "pro";
+    const isPro = true;
     const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState(25);
     const [timeLeft, setTimeLeft] = useState(25 * 60);
@@ -124,7 +124,7 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
         if (!isPlaying) {
             // Starting session
             try {
-                if (isPro && !aiAdjustment) {
+                if (!aiAdjustment) {
                     setIsAdjusting(true);
                     const adjustment = await getPreSessionAdjustment({
                         emotion: mentalState,
@@ -153,15 +153,6 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
                     blockedDomains: []
                 }) as any;
 
-                if (res.error === "limit_reached") {
-                    toast.error(`Daily limit reached (${res.limit} sessions). Upgrade to Pro for unlimited focus! ⚡`, {
-                        action: {
-                            label: "Upgrade",
-                            onClick: () => router.push("/pricing")
-                        }
-                    });
-                    return;
-                }
 
                 const sessionId = res.sessionId;
                 setSessionId(sessionId);
@@ -229,16 +220,8 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
     return (
         <div className="lg:col-span-2 bg-card/50 rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[500px] border border-border backdrop-blur-md shadow-sm">
             {/* Adaptive Mode Badge */}
-            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full border text-xs flex items-center gap-2 ${isPro ? 'bg-secondary/10 border-border text-muted-foreground' : 'bg-muted border-transparent text-muted-foreground opacity-70'}`}>
-                {isPro ? (
-                    <>
-                        <BrainCircuit className="w-3 h-3 text-primary" /> AI Adaptive Mode
-                    </>
-                ) : (
-                    <>
-                        <BrainCircuit className="w-3 h-3" /> Adaptive Mode (Pro)
-                    </>
-                )}
+            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full border text-xs flex items-center gap-2 bg-secondary/10 border-border text-muted-foreground`}>
+                <BrainCircuit className="w-3 h-3 text-primary" /> AI Adaptive Mode
             </div>
 
             <div className="relative w-72 h-72 flex items-center justify-center mb-12">

@@ -13,15 +13,6 @@ export function DashboardControls({ userPlan }: { userPlan: string }) {
     const router = useRouter();
 
     const handleWeeklyReport = () => {
-        if (userPlan !== "pro") {
-            toast.info("Weekly Reports are a Pro feature! ⚡", {
-                action: {
-                    label: "Upgrade",
-                    onClick: () => router.push("/pricing")
-                }
-            });
-            return;
-        }
         setIsWeeklyOpen(true);
     };
 

@@ -149,16 +149,6 @@ export default function FocusSession() {
                 blockedDomains: [],
             }) as any;
 
-            if (res.error === "limit_reached") {
-                toast.error(`Daily limit reached (${res.limit} sessions). Upgrade to Pro for unlimited focus! ⚡`, {
-                    action: {
-                        label: "Upgrade",
-                        onClick: () => router.push("/pricing")
-                    }
-                });
-                return;
-            }
-
             setSessionId(res.sessionId);
             setTimeLeft(duration * 60);
             setStep("timer");

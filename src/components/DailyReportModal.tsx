@@ -72,23 +72,6 @@ export function DailyReportModal({ isOpen, onClose }: DailyReportModalProps) {
                                     <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
                                     <p className="text-muted-foreground font-medium">Analyzing neural activity...</p>
                                 </div>
-                            ) : data?.error === "limit_reached" ? (
-                                <div className="py-12 text-center space-y-8">
-                                    <div className="w-24 h-24 bg-primary/20 text-primary rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
-                                        <Zap className="w-12 h-12 fill-current" />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <h3 className="text-3xl font-black text-foreground tracking-tight">Daily Limit Reached</h3>
-                                        <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed font-medium">
-                                            You've already generated your focus report for today ({data.limit}/{data.limit} requests used).
-                                        </p>
-                                    </div>
-                                    {data.plan === "free" && (
-                                        <Link href="/pricing" className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-primary-foreground font-black rounded-2xl hover:scale-105 transition-all shadow-xl shadow-primary/30 active:scale-95">
-                                            Upgrade to Pro for 3 Reports/Day ⚡
-                                        </Link>
-                                    )}
-                                </div>
                             ) : (
                                 <>
                                     {/* Key Metrics Grid */}

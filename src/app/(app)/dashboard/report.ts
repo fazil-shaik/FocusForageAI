@@ -11,23 +11,6 @@ export async function getDailyReportData() {
     const session = await getSession();
     if (!session) return null;
 
-    const user = session.user as any;
-    const plan = user.plan || "free";
-    const limit = plan === "pro" ? 3 : 1;
-    const dateKey = new Date().toISOString().split("T")[0];
-    const redisKey = `report_limit:${user.id}:${dateKey}`;
-
-    const currentCount = await redis.get(redisKey);
-    const count = currentCount ? parseInt(currentCount) : 0;
-
-    if (count >= limit) {
-        return { error: "limit_reached", plan, limit };
-    }
-
-    // Increment count
-    await redis.incr(redisKey);
-    await redis.expire(redisKey, 86400); // 1 day
-
     const today = new Date().toISOString().split("T")[0];
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
