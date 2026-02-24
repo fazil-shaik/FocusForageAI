@@ -33,10 +33,13 @@ export const auth = betterAuth({
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
         },
     },
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    baseURL: process.env.BETTER_AUTH_URL || (process.env.NODE_ENV === "production" ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
     trustedOrigins: [
         "https://focus-forage-ai.vercel.app",
         "http://localhost:3000"
     ],
+    advanced: {
+        useSecureCookies: process.env.NODE_ENV === "production",
+    },
     plugins: [nextCookies()],
 });
