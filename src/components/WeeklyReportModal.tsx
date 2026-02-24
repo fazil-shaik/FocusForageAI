@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Calendar, Brain, TrendingUp, Zap, Sparkles, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { generateWeeklyAIReport } from "@/app/(app)/dashboard/report";
 import Link from "next/link";
 
@@ -14,8 +15,10 @@ interface WeeklyReportModalProps {
 export function WeeklyReportModal({ isOpen, onClose }: WeeklyReportModalProps) {
     const [report, setReport] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         if (isOpen) {
             setLoading(true);
             generateWeeklyAIReport().then(content => {
@@ -28,7 +31,9 @@ export function WeeklyReportModal({ isOpen, onClose }: WeeklyReportModalProps) {
         }
     }, [isOpen]);
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 md:p-10 pointer-events-none">
@@ -115,6 +120,7 @@ export function WeeklyReportModal({ isOpen, onClose }: WeeklyReportModalProps) {
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

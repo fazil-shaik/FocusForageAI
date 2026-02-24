@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FocusForge AI ⚡
 
-## Getting Started
+A high-performance, AI-driven productivity dashboard designed to forge deep focus and behavioral excellence. Built with Next.js, Gemini AI, and a premium glassmorphic interface.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 💎 Pro Tier Features
+- **Unlimited Focus Sessions:** Break free from the 3-session daily limit.
+- **Weekly Neural Reports:** AI-generated 7-day summaries of your focus patterns and productivity metrics.
+- **Smart AI Scheduling:** Intelligent task prioritization based on your peak performance hours.
+- **Behavioral Analysis:** Deep-dive insights into procrastination triggers and focus rhythm.
+- **Priority Support:** Direct line to fast-track assistance at `fazilshaik103@gmail.com`.
+- **Emotional Adaptation Engine:** The dashboard adapts its UI and music recommendations based on your mental state (Flow, Anxious, Tired, etc.).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🛠 Tech Stack
+- **Framework:** Next.js 15 (App Router)
+- **Database:** Neon (PostgreSQL) with Drizzle ORM
+- **Authentication:** Better Auth
+- **AI Engine:** Google Gemini AI
+- **Caching/Limits:** Redis (Upstash)
+- **Styling:** Tailwind CSS + Framer Motion
+- **Payments:** Cashfree Integration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠 Setup & Installation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Clone the repository**
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+3. **Environment Variables:**
+   Create a `.env` file with the following keys:
+   - `DATABASE_URL` (Neon DB)
+   - `BETTER_AUTH_SECRET`
+   - `GOOGLE_GENERATIVE_AI_API_KEY`
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+   - `NEXT_PUBLIC_CASHFREE_APP_ID`
+   - `CASHFREE_SECRET_KEY`
 
-## Learn More
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+## 📈 Roadmap
+- [x] Daily/Weekly AI Reports
+- [x] Focus Session Session Limits
+- [x] Priority Support Access
+- [ ] Team Collaboration Workspaces
+- [ ] Mobile App (React Native Port)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Forged by [Fazil Shaik](mailto:fazilshaik103@gmail.com)*
