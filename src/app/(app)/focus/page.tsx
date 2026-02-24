@@ -194,7 +194,7 @@ function FeaturePreview({ icon, label }: { icon: React.ReactNode, label: string 
     return (
         <div className="p-6 rounded-[2rem] bg-white/5 border border-white/5 flex flex-col items-center gap-3 group hover:border-primary/20 transition-all">
             <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:scale-110 transition-transform">
-                {React.cloneElement(icon as React.ReactElement, { size: 24, strokeWidth: 2.5 })}
+                {React.cloneElement(icon as React.ReactElement<any>, { size: 24, strokeWidth: 2.5 })}
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 text-center leading-tight">
                 {label}
