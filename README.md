@@ -1,10 +1,10 @@
-# FocusForge AI ⚡
+# FocusForge AI
 
 A high-performance, AI-driven productivity dashboard designed to forge deep focus and behavioral excellence. Built with Next.js, Gemini AI, and a premium glassmorphic interface.
 
-## 🚀 Features
+## Features
 
-### 💎 Pro Tier Features
+### Pro Tier Features
 - **Unlimited Focus Sessions:** Break free from the 3-session daily limit.
 - **Weekly Neural Reports:** AI-generated 7-day summaries of your focus patterns and productivity metrics.
 - **Smart AI Scheduling:** Intelligent task prioritization based on your peak performance hours.
@@ -12,7 +12,7 @@ A high-performance, AI-driven productivity dashboard designed to forge deep focu
 - **Priority Support:** Direct line to fast-track assistance at `fazilshaik103@gmail.com`.
 - **Emotional Adaptation Engine:** The dashboard adapts its UI and music recommendations based on your mental state (Flow, Anxious, Tired, etc.).
 
-### 🛠 Tech Stack
+### Tech Stack
 - **Framework:** Next.js 15 (App Router)
 - **Database:** Neon (PostgreSQL) with Drizzle ORM
 - **Authentication:** Better Auth
@@ -21,7 +21,7 @@ A high-performance, AI-driven productivity dashboard designed to forge deep focu
 - **Styling:** Tailwind CSS + Framer Motion
 - **Payments:** Cashfree Integration
 
-## 🛠 Setup & Installation
+## Setup & Installation
 
 1. **Clone the repository**
 2. **Install dependencies:**
@@ -43,7 +43,7 @@ A high-performance, AI-driven productivity dashboard designed to forge deep focu
    npm run dev
    ```
 
-## 📈 Roadmap
+## Roadmap
 - [x] Daily/Weekly AI Reports
 - [x] Focus Session Session Limits
 - [x] Priority Support Access
