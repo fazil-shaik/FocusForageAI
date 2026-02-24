@@ -7,6 +7,7 @@ import { BrainCircuit, Target, CheckCircle, Zap, ChevronRight } from "lucide-rea
 import Link from "next/link";
 import { FocusTimer } from "@/components/FocusTimer";
 import { DashboardControls } from "@/components/DashboardControls";
+import { Greeting } from "@/components/Greeting";
 import { generateDynamicInsight } from "./insights";
 
 import { redis } from "@/lib/redis";
@@ -92,6 +93,16 @@ export default async function Dashboard() {
         xp: user.xp || 0
     });
 
+    // Calculate dynamic focus score
+    // Using avg of last 7 days deep work vs a 2-hour daily goal
+    const last7DaysStats = metrics.stats || [];
+    const avgMinutes = last7DaysStats.length > 0
+        ? last7DaysStats.reduce((acc, s) => acc + (s.totalDeepWorkMinutes || 0), 0) / Math.max(last7DaysStats.length, 1)
+        : 0;
+
+    // 120 minutes = 100% focus score for the day
+    const focusScore = Math.min(Math.round((avgMinutes / 120) * 100), 100) || 0;
+
     return (
         <div className="max-w-6xl mx-auto space-y-8 relative">
             {/* Mesh Gradient Background Overlay */}
@@ -101,16 +112,14 @@ export default async function Dashboard() {
             {/* Header */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
-                    <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-2">
-                        Good afternoon, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">{userFirstName}</span>
-                    </h1>
+                    <Greeting userName={userFirstName} />
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/10 border border-border/50 rounded-2xl backdrop-blur-sm shadow-sm">
                             <div className="relative flex items-center justify-center">
                                 <span className="absolute w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
                                 <span className="relative w-2 h-2 rounded-full bg-green-500"></span>
                             </div>
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Focus Score: <span className="text-foreground">85/100</span></span>
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Focus Score: <span className="text-foreground">{focusScore}/100</span></span>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-2xl backdrop-blur-sm shadow-sm group hover:scale-105 transition-transform cursor-default">
                             <Zap className="w-3.5 h-3.5 text-primary fill-current" />

@@ -25,6 +25,11 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
 
     const maxMinutes = Math.max(...data.dailyStats.map(s => s.totalDeepWorkMinutes || 0), 1);
 
+    const avgFocusScore = data.dailyStats.length > 0
+        ? data.dailyStats.reduce((acc, s) => acc + (s.moodScore || 0), 0) / data.dailyStats.length
+        : 0;
+    const displayFocusScore = avgFocusScore > 0 ? `${avgFocusScore.toFixed(1)}/10` : "N/A";
+
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-foreground">Neural Stats</h1>
@@ -45,7 +50,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                 />
                 <MetricCard
                     title="Avg Focus Score"
-                    value="8.5/10"
+                    value={displayFocusScore}
                     icon={<Brain className="w-5 h-5 text-blue-400" />}
                     trend="Self-Reported"
                 />
@@ -107,7 +112,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                                     <div>
                                         <p className="font-bold text-sm text-foreground">{session.taskName}</p>
                                         <p className="text-xs text-muted-foreground">
-                                            {session.startTime ? new Date(session.startTime).toLocaleDateString() : 'Unknown Date'}
+                                            {session.startTime ? new Date(session.startTime).toLocaleDateString('en-US') : 'Unknown Date'}
                                         </p>
                                     </div>
                                     <div className="text-right">
