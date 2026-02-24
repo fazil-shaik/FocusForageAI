@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Brain, CheckCircle, Volume2, Maximize2, X, AlertTriangle, Activity, ChevronRight, Zap, Target, Battery, BrainCircuit, Waves, Clock, Sparkles } from "lucide-react";

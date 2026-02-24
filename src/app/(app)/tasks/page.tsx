@@ -1,4 +1,5 @@
 import { getTasks } from "./actions";
+export const dynamic = "force-dynamic";
 import { TaskBoard } from "@/components/TaskBoard";
 
 export default async function TasksPage() {

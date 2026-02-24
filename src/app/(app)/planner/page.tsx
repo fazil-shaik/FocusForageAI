@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import { Loader2, Sparkles, Clock, Battery, ListTodo, Zap } from "lucide-react";
 import { savePlanToTasks, getPlannerCredits } from "./actions";

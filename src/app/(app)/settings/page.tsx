@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/session";
+export const dynamic = "force-dynamic";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/SettingsForm";
 import { db } from "@/db";
