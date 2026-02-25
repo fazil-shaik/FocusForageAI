@@ -49,7 +49,7 @@ export default function SignUp() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full bg-secondary/20 border border-border/50 focus:border-primary rounded-xl px-4 py-3 text-sm md:text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50 font-medium"
+                        className="w-full bg-black/40 border border-white/5 focus:border-primary rounded-xl px-4 py-3 text-sm md:text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 font-medium"
                         placeholder="John Doe"
                     />
                 </div>
@@ -59,7 +59,7 @@ export default function SignUp() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-secondary/20 border border-border/50 focus:border-primary rounded-xl px-4 py-3 text-sm md:text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50 font-medium"
+                        className="w-full bg-black/40 border border-white/5 focus:border-primary rounded-xl px-4 py-3 text-sm md:text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 font-medium"
                         placeholder="you@example.com"
                     />
                 </div>
@@ -69,7 +69,7 @@ export default function SignUp() {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-secondary/20 border border-border/50 focus:border-primary rounded-xl px-4 py-3 text-sm md:text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50 font-medium"
+                        className="w-full bg-black/40 border border-white/5 focus:border-primary rounded-xl px-4 py-3 text-sm md:text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 font-medium"
                         placeholder="••••••••"
                     />
                 </div>
@@ -98,7 +98,7 @@ export default function SignUp() {
                             callbackURL: "/dashboard",
                         });
                     }}
-                    className="w-full bg-secondary/30 border border-border text-foreground font-bold py-4 rounded-2xl hover:bg-secondary/50 transition-all flex items-center justify-center gap-3 shadow-sm hover:shadow-md border-none outline-none"
+                    className="w-full bg-white/5 border border-white/10 text-foreground font-bold py-4 rounded-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-3 shadow-sm hover:shadow-md outline-none"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path
