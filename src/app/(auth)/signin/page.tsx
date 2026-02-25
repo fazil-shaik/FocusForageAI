@@ -36,30 +36,30 @@ export default function SignIn() {
     };
 
     return (
-        <div className="bg-card/80 border border-border rounded-[2rem] p-8 backdrop-blur-md shadow-2xl max-w-md w-full mx-4">
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h1>
-                <p className="text-muted-foreground text-sm">Sign in to access your FocusForge.</p>
+        <div className="bg-card/80 border border-border rounded-[2rem] p-6 md:p-8 backdrop-blur-md shadow-2xl max-w-md w-full mx-4 sm:mx-0">
+            <div className="text-center mb-6 md:mb-8">
+                <h1 className="text-2xl md:text-3xl font-black text-foreground mb-2 tracking-tight">Welcome Back</h1>
+                <p className="text-muted-foreground text-xs md:text-sm font-medium">Sign in to access your FocusForge.</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 md:space-y-5">
                 <div>
-                    <label className="block text-sm font-bold text-foreground mb-2">Email</label>
+                    <label className="block text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest">Email</label>
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-input border border-transparent focus:border-primary rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
+                        className="w-full bg-secondary/20 border border-border/50 focus:border-primary rounded-xl px-4 py-3 text-sm md:text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50 font-medium"
                         placeholder="you@example.com"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-bold text-foreground mb-2">Password</label>
+                    <label className="block text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest">Password</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-input border border-transparent focus:border-primary rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
+                        className="w-full bg-secondary/20 border border-border/50 focus:border-primary rounded-xl px-4 py-3 text-sm md:text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50 font-medium"
                         placeholder="••••••••"
                     />
                 </div>
@@ -67,17 +67,17 @@ export default function SignIn() {
                 <button
                     onClick={handleSignIn}
                     disabled={loading}
-                    className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-full hover:opacity-90 transition-all flex items-center justify-center gap-2 mt-6 shadow-lg hover:shadow-xl hover:-translate-y-1"
+                    className="w-full bg-primary text-primary-foreground font-black py-4 rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 mt-6 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] text-xs uppercase tracking-widest"
                 >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
                 </button>
 
-                <div className="relative my-6">
+                <div className="relative my-6 md:my-8">
                     <div className="absolute inset-0 flex items-center">
                         <span className="w-full border-t border-border" />
                     </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                    <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
+                        <span className="bg-card px-4 text-muted-foreground">Or continue with</span>
                     </div>
                 </div>
 
@@ -88,7 +88,7 @@ export default function SignIn() {
                             callbackURL: "/dashboard",
                         });
                     }}
-                    className="w-full bg-secondary/50 border border-border text-foreground font-bold py-4 rounded-full hover:bg-secondary transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                    className="w-full bg-secondary/30 border border-border text-foreground font-bold py-4 rounded-2xl hover:bg-secondary/50 transition-all flex items-center justify-center gap-3 shadow-sm hover:shadow-md border-none outline-none"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path
@@ -108,11 +108,11 @@ export default function SignIn() {
                             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                         />
                     </svg>
-                    Sign in with Google
+                    <span className="text-xs font-black uppercase tracking-widest">Sign in with Google</span>
                 </button>
 
-                <p className="text-center text-sm text-muted-foreground mt-8">
-                    Don't have an account? <Link href="/signup" className="text-primary font-bold hover:underline">Sign Up</Link>
+                <p className="text-center text-[10px] md:text-xs text-muted-foreground mt-8 font-medium">
+                    Don't have an account? <Link href="/signup" className="text-primary font-black hover:underline ml-1">SIGN UP</Link>
                 </p>
             </div>
         </div>

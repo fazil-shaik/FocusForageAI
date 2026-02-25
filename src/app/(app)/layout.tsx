@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 
 import { TopNav } from "@/components/TopNav";
 import { Toaster } from "sonner";
+import { eq } from "drizzle-orm";
+import { users } from "@/db/schema";
+import { db } from "@/db";
 
 export default async function AppLayout({
     children,
@@ -17,9 +20,6 @@ export default async function AppLayout({
     }
 
     // Fetch real-time user data for XP sync
-    const { eq } = await import("drizzle-orm");
-    const { users } = await import("@/db/schema");
-    const { db } = await import("@/db");
 
     const dbUser = await db.query.users.findFirst({
         where: eq(users.id, session.user.id)

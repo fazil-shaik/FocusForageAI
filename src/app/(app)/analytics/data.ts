@@ -6,10 +6,24 @@ import { eq, sql, desc } from "drizzle-orm";
 import { getSession } from "@/lib/session";
 
 import { generatePatternAnalysis } from "./analyze";
+import { redis } from "@/lib/redis";
 
 export async function getAnalyticsData() {
     const session = await getSession();
     if (!session) return null;
+
+    const cacheKey = `analytics:analysis:${session.user.id}`;
+
+    // Check cache first
+    try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            console.log("Returning cached analytics data");
+            return JSON.parse(cached);
+        }
+    } catch (e) {
+        console.error("Redis cache read error:", e);
+    }
 
     // ... existing queries ...
     // Get daily stats
@@ -74,7 +88,7 @@ export async function getAnalyticsData() {
         behavioralAnalysis = await generatePatternAnalysis(session.user.id);
     }
 
-    return {
+    const result = {
         dailyStats: filledStats,
         recentSessions,
         totalDeepWorkHours: parseFloat((totalDeepWorkMinutes / 60).toFixed(1)),
@@ -83,4 +97,13 @@ export async function getAnalyticsData() {
         userPlan,
         behavioralAnalysis,
     };
+
+    // Cache the result for 1 hour
+    try {
+        await redis.setex(cacheKey, 3600, JSON.stringify(result));
+    } catch (e) {
+        console.error("Redis cache write error:", e);
+    }
+
+    return result;
 }

@@ -132,15 +132,15 @@ export function HeroDemo() {
     };
 
     return (
-        <div className="relative w-full max-w-5xl mx-auto mt-20 select-none pointer-events-none scale-90 md:scale-100">
+        <div className="relative w-full max-w-5xl mx-auto mt-12 md:mt-20 select-none pointer-events-none px-4 md:px-0">
             {/* Ambient Background Glow */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-[3rem] blur-3xl opacity-50 animate-pulse"></div>
+            <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-[2.5rem] md:rounded-[3rem] blur-3xl opacity-50 animate-pulse"></div>
 
             <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1 }}
-                className="relative bg-[#0A0A0B] rounded-[2.5rem] shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden border border-white/10 ring-1 ring-white/5 aspect-[16/10] flex"
+                className="relative bg-[#0A0A0B] rounded-[2rem] md:rounded-[2.5rem] shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden border border-white/10 ring-1 ring-white/5 flex flex-col md:flex-row min-h-[450px] md:h-[600px] w-full"
             >
                 {/* LOGIN OVERLAY */}
                 <AnimatePresence>
@@ -180,7 +180,7 @@ export function HeroDemo() {
                 </AnimatePresence>
 
                 {/* SIDEBAR */}
-                <div className="w-24 bg-card/30 border-r border-white/5 flex flex-col items-center py-10 gap-10 shrink-0">
+                <div className="hidden md:flex w-24 bg-card/30 border-r border-white/5 flex flex-col items-center py-10 gap-10 shrink-0">
                     <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
                         <Brain className="w-7 h-7 text-primary fill-primary/20" />
                     </div>
@@ -192,51 +192,63 @@ export function HeroDemo() {
                     </div>
                 </div>
 
+                {/* MOBILE TOP BAR (for demo visualization on mobile) */}
+                <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-card/30">
+                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
+                        <Brain className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex gap-4">
+                        <LayoutDashboard className={`w-5 h-5 ${activeView === 'dashboard' ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <ListTodo className={`w-5 h-5 ${activeView === 'tasks' ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <BarChart3 className={`w-5 h-5 ${activeView === 'analytics' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    </div>
+                </div>
+
                 {/* CONTENT AREA */}
-                <div className="flex-1 p-10 flex flex-col min-h-0 bg-gradient-to-br from-background via-background to-primary/[0.02]">
-                    <header className="flex justify-between items-center mb-10 shrink-0">
+                <div className="flex-1 p-6 md:p-10 flex flex-col min-h-0 bg-gradient-to-br from-background via-background to-primary/[0.02] overflow-hidden">
+                    <header className="flex justify-between items-center mb-6 md:mb-10 shrink-0">
                         <div className="flex items-center gap-3">
-                            <h2 className="text-3xl font-black tracking-tight flex items-center gap-3">
-                                {activeView === 'dashboard' && <><LayoutDashboard className="w-7 h-7 text-primary" /> Dashboard</>}
-                                {activeView === 'tasks' && <><ListTodo className="w-7 h-7 text-primary" /> Tasks</>}
-                                {activeView === 'analytics' && <><BarChart3 className="w-7 h-7 text-primary" /> Analytics</>}
+                            <h2 className="text-xl md:text-3xl font-black tracking-tight flex items-center gap-2 md:gap-3">
+                                {activeView === 'dashboard' && <><LayoutDashboard className="w-5 h-5 md:w-7 md:h-7 text-primary" /> Dashboard</>}
+                                {activeView === 'tasks' && <><ListTodo className="w-5 h-5 md:w-7 md:h-7 text-primary" /> Tasks</>}
+                                {activeView === 'analytics' && <><BarChart3 className="w-5 h-5 md:w-7 md:h-7 text-primary" /> Analytics</>}
                             </h2>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <div className="text-right">
-                                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5">Shaib P.</div>
-                                <div className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">Unlimited Access</div>
+                        <div className="flex items-center gap-2 md:gap-4">
+                            <div className="text-right hidden xs:block">
+                                <div className="text-[8px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5">Shaib P.</div>
+                                <div className="text-[7px] md:text-[9px] font-black px-1.5 md:px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">Unlimited</div>
                             </div>
-                            <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black text-lg shadow-lg border border-white/10 ring-2 ring-white/5">SP</div>
+                            <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-[1.25rem] bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black text-sm md:text-lg shadow-lg border border-white/10 ring-2 ring-white/5">SP</div>
                         </div>
                     </header>
 
                     <div className="relative flex-1 min-h-0">
                         {/* VIEW: DASHBOARD */}
                         {activeView === 'dashboard' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-5 gap-8 h-full">
-                                <div className="col-span-3 bg-card/60 backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center justify-center relative group p-10">
-                                    <div className="absolute top-6 right-6 flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-xl border border-primary/20">
-                                        <Zap className="w-3 h-3 text-primary fill-current" />
-                                        <span className="text-[9px] font-black text-primary tracking-widest uppercase">AI Optimal</span>
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-8 h-full overflow-y-auto pr-1">
+                                <div className="md:col-span-3 bg-card/60 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center justify-center relative group p-6 md:p-10">
+                                    <div className="absolute top-4 md:top-6 right-4 md:right-6 flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-primary/10 rounded-lg md:rounded-xl border border-primary/20">
+                                        <Zap className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary fill-current" />
+                                        <span className="text-[7px] md:text-[9px] font-black text-primary tracking-widest uppercase">AI Optimal</span>
                                     </div>
-                                    <div className={`text-[7rem] font-black tabular-nums tracking-tighter leading-none mb-10 ${isPlaying ? 'text-primary' : 'text-foreground'}`}>
+                                    <div className={`text-5xl sm:text-6xl md:text-[7rem] font-black tabular-nums tracking-tighter leading-none mb-6 md:mb-10 ${isPlaying ? 'text-primary' : 'text-foreground'}`}>
                                         {formatTime(timeLeft)}
                                     </div>
                                     <motion.div
                                         animate={buttonControls}
-                                        className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all ${isPlaying ? 'bg-secondary text-secondary-foreground rotate-90' : 'bg-primary text-primary-foreground'} ${hoveredElement === 'play-btn' ? 'scale-110 shadow-primary/40 ring-8 ring-primary/10' : ''}`}
+                                        className={`w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center shadow-2xl transition-all ${isPlaying ? 'bg-secondary text-secondary-foreground rotate-90' : 'bg-primary text-primary-foreground'} ${hoveredElement === 'play-btn' ? 'scale-110 shadow-primary/40 ring-4 md:ring-8 ring-primary/10' : ''}`}
                                     >
-                                        <Play className="w-8 h-8 fill-current" />
+                                        <Play className="w-6 h-6 md:w-8 md:h-8 fill-current" />
                                     </motion.div>
                                 </div>
-                                <div className="col-span-2 space-y-6">
-                                    <div className="bg-card/40 p-6 rounded-[2rem] border border-white/10">
-                                        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
-                                            <Activity className="w-4 h-4 text-primary" /> Cognitive Score
+                                <div className="md:col-span-2 space-y-4 md:space-y-6">
+                                    <div className="bg-card/40 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-white/10">
+                                        <h4 className="text-[8px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 md:mb-4 flex items-center gap-2">
+                                            <Activity className="w-3 md:w-4 md:h-4 text-primary" /> Cognitive Score
                                         </h4>
-                                        <div className="text-5xl font-black mb-4 tracking-tight">92<span className="text-xl text-muted-foreground font-medium ml-1">/100</span></div>
-                                        <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                        <div className="text-3xl md:text-5xl font-black mb-2 md:mb-4 tracking-tight">92<span className="text-base md:text-xl text-muted-foreground font-medium ml-1">/100</span></div>
+                                        <div className="h-2 md:h-2.5 w-full bg-white/5 rounded-full overflow-hidden">
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: "92%" }}
@@ -244,15 +256,15 @@ export function HeroDemo() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="bg-primary/10 p-6 rounded-[2rem] border border-primary/20 relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                            <Brain className="w-12 h-12" />
+                                    <div className="bg-primary/10 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-primary/20 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5 md:opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <Brain className="w-8 h-8 md:w-12 md:h-12" />
                                         </div>
-                                        <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
-                                            <Zap className="w-4 h-4" /> AI Reflection
+                                        <h4 className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-widest mb-1 md:mb-2 flex items-center gap-2">
+                                            <Zap className="w-3 md:w-4 md:h-4" /> AI Reflection
                                         </h4>
-                                        <p className="text-sm font-bold text-foreground leading-relaxed">
-                                            Your neural bandwidth peaks at 11 AM. A 25min deep session now will maximize output.
+                                        <p className="text-xs md:text-sm font-bold text-foreground leading-relaxed">
+                                            Your neural bandwidth peaks at 11 AM.
                                         </p>
                                     </div>
                                 </div>
@@ -261,35 +273,35 @@ export function HeroDemo() {
 
                         {/* VIEW: TASKS */}
                         {activeView === 'tasks' && (
-                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-full flex flex-col gap-6">
-                                <div className="flex justify-between items-center">
-                                    <div className="flex gap-3">
-                                        <span className="px-4 py-2 rounded-xl bg-primary/20 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 shadow-lg shadow-primary/10">Working</span>
-                                        <span className="px-4 py-2 rounded-xl bg-white/5 text-muted-foreground text-[10px] font-black uppercase tracking-widest border border-white/5">Archives</span>
+                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-full flex flex-col gap-4 md:gap-6 overflow-y-auto pr-1">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div className="flex gap-2 md:gap-3">
+                                        <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-primary/20 shadow-lg shadow-primary/10">Working</span>
+                                        <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-white/5 text-muted-foreground text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">Archives</span>
                                     </div>
-                                    <div className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20">
-                                        <Plus className="w-4 h-4" /> New Task
+                                    <div className="px-4 md:px-5 py-2 md:py-2.5 bg-primary text-primary-foreground rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20">
+                                        <Plus className="w-3 md:w-4 md:h-4" /> New Task
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-1 gap-3 md:gap-4">
                                     {tasks.map((task, i) => (
                                         <motion.div
                                             key={task.id}
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * 0.1 }}
-                                            className={`p-6 rounded-[1.75rem] border transition-all flex items-center justify-between group ${task.status === 'done' ? 'bg-green-500/10 border-green-500/20 opacity-60' : 'bg-card/40 border-white/10 hover:border-primary/40 shadow-xl'}`}
+                                            className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.75rem] border transition-all flex items-center justify-between group ${task.status === 'done' ? 'bg-green-500/10 border-green-500/20 opacity-60' : 'bg-card/40 border-white/10 hover:border-primary/40 shadow-xl'}`}
                                         >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all ${task.status === 'done' ? 'bg-green-500 border-green-500' : 'border-primary/50 bg-primary/5'}`}>
-                                                    {task.status === 'done' && <CheckCircle className="w-4 h-4 text-white" />}
+                                            <div className="flex items-center gap-3 md:gap-4">
+                                                <div className={`w-5 h-5 md:w-7 md:h-7 rounded-lg md:rounded-xl border-2 flex items-center justify-center transition-all ${task.status === 'done' ? 'bg-green-500 border-green-500' : 'border-primary/50 bg-primary/5'}`}>
+                                                    {task.status === 'done' && <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-white" />}
                                                 </div>
-                                                <span className={`text-lg font-bold tracking-tight ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                                <span className={`text-sm md:text-lg font-bold tracking-tight ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                                     {task.title}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className={`text-[9px] px-3 py-1 rounded-lg font-black uppercase tracking-[0.2em] ${task.priority === 'High' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'}`}>
+                                            <div className="flex items-center gap-2 md:gap-3">
+                                                <span className={`text-[7px] md:text-[9px] px-2 md:px-3 py-0.5 md:py-1 rounded-md md:rounded-lg font-black uppercase tracking-[0.2em] ${task.priority === 'High' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'}`}>
                                                     {task.priority}
                                                 </span>
                                             </div>
@@ -301,23 +313,23 @@ export function HeroDemo() {
 
                         {/* VIEW: ANALYTICS */}
                         {activeView === 'analytics' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col gap-8">
-                                <div className="grid grid-cols-3 gap-6">
-                                    <StatCard label="Total Focus" value="48h 20m" icon={<Clock className="text-blue-400" />} />
-                                    <StatCard label="Flow Cycles" value="142" icon={<Activity className="text-accent" />} />
-                                    <StatCard label="Victory Rate" value="98%" icon={<Target className="text-primary" />} />
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col gap-4 md:gap-8 overflow-y-auto pr-1">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
+                                    <StatCard label="Total Focus" value="48h 20m" icon={<Clock className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />} />
+                                    <StatCard label="Flow Cycles" value="142" icon={<Activity className="w-4 h-4 md:w-5 md:h-5 text-accent" />} />
+                                    <StatCard label="Victory Rate" value="98%" icon={<Target className="w-4 h-4 md:w-5 md:h-5 text-primary" />} />
                                 </div>
-                                <div className="flex-1 bg-card/60 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 flex flex-col relative overflow-hidden shadow-2xl">
-                                    <div className="flex justify-between items-start mb-10">
-                                        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-                                            <TrendingUp className="w-4 h-4 text-primary" /> Recovery Period Analysis
+                                <div className="flex-1 bg-card/60 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col relative overflow-hidden shadow-2xl min-h-[200px]">
+                                    <div className="flex justify-between items-start mb-6 md:mb-10">
+                                        <h4 className="text-[8px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <TrendingUp className="w-3 md:w-4 md:h-4 text-primary" /> Recovery Period
                                         </h4>
-                                        <div className="flex gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                            <div className="w-2 h-2 rounded-full bg-accent" />
+                                        <div className="flex gap-1.5 md:gap-2">
+                                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-primary animate-pulse" />
+                                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent" />
                                         </div>
                                     </div>
-                                    <div className="flex-1 flex items-end justify-between gap-4 px-2">
+                                    <div className="flex-1 flex items-end justify-between gap-1 md:gap-4 px-1 md:px-2">
                                         {[45, 60, 35, 90, 55, 80, 65, 40, 75, 50, 95, 70].map((h, i) => (
                                             <motion.div
                                                 key={i}
@@ -325,15 +337,11 @@ export function HeroDemo() {
                                                 animate={{ scaleY: 1 }}
                                                 transition={{ delay: i * 0.05, duration: 1, ease: "circOut" }}
                                                 style={{ height: `${h}%` }}
-                                                className="w-full bg-gradient-to-t from-primary/40 to-primary rounded-xl origin-bottom relative group"
-                                            >
-                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-card border border-white/10 px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all text-xs font-black shadow-2xl">
-                                                    {h}%
-                                                </div>
-                                            </motion.div>
+                                                className="w-full bg-gradient-to-t from-primary/40 to-primary rounded-sm md:rounded-xl origin-bottom relative group"
+                                            />
                                         ))}
                                     </div>
-                                    <div className="flex justify-between mt-8 text-[9px] text-muted-foreground/60 font-black uppercase tracking-[0.3em] px-1">
+                                    <div className="flex justify-between mt-4 md:mt-8 text-[7px] md:text-[9px] text-muted-foreground/60 font-black uppercase tracking-[0.1em] md:tracking-[0.3em] px-1">
                                         <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                                     </div>
                                 </div>
@@ -365,12 +373,12 @@ function NavIcon({ active, icon }: { active: boolean, icon: React.ReactNode }) {
 
 function StatCard({ label, value, icon }: { label: string, value: string, icon: React.ReactNode }) {
     return (
-        <div className="bg-card/40 border border-white/10 p-6 rounded-[2rem] shadow-xl hover:border-primary/20 transition-all flex flex-col gap-3 group">
+        <div className="bg-card/40 border border-white/10 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-xl hover:border-primary/20 transition-all flex flex-col gap-2 md:gap-3 group">
             <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">{label}</span>
-                <div className="p-2 bg-white/5 rounded-xl group-hover:scale-110 transition-transform">{icon}</div>
+                <span className="text-[8px] md:text-[9px] font-black text-muted-foreground uppercase tracking-[0.1em] md:tracking-[0.2em]">{label}</span>
+                <div className="p-1.5 md:p-2 bg-white/5 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">{icon}</div>
             </div>
-            <div className="text-3xl font-black tracking-tight text-foreground">{value}</div>
+            <div className="text-xl md:text-3xl font-black tracking-tight text-foreground">{value}</div>
         </div>
     );
 }

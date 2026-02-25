@@ -44,7 +44,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="mb-8"
           >
-            <h1 className="text-5xl md:text-8xl font-bold tracking-tight mb-8 leading-[1.1] text-foreground">
+            <h1 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tight mb-6 md:mb-8 leading-[1.1] text-foreground">
               Focus is <span className="text-primary italic relative">
                 Fun
                 <svg className="absolute w-full h-3 -bottom-1 left-0 text-primary opacity-30" viewBox="0 0 100 10" preserveAspectRatio="none">
@@ -52,15 +52,15 @@ export default function LandingPage() {
                 </svg>
               </span> Again.
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+            <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed font-medium px-4 md:px-0">
               The world's most friendly AI productivity coach. We turn your to-do list into a
               colorful playground of accomplishment.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/signup" className="px-10 py-5 rounded-full bg-primary text-primary-foreground font-bold text-xl hover:scale-105 transition-transform flex items-center gap-3 shadow-xl hover:shadow-2xl hover:bg-primary/90">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 px-6 sm:px-0">
+              <Link href="/signup" className="w-full sm:w-auto px-10 py-5 rounded-full bg-primary text-primary-foreground font-bold text-xl hover:scale-105 transition-transform flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl hover:bg-primary/90">
                 Start Playing <Play className="w-5 h-5 fill-current" />
               </Link>
-              <Link href="#demo" className="px-10 py-5 rounded-full bg-card border-2 border-border text-foreground font-bold text-xl hover:border-primary/50 transition-all">
+              <Link href="#demo" className="w-full sm:w-auto px-10 py-5 rounded-full bg-card border-2 border-border text-foreground font-bold text-xl hover:border-primary/50 transition-all text-center">
                 How it Works
               </Link>
             </div>
@@ -81,11 +81,11 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-20"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">Built for Happy Brains</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Science says dopamine helps you focus. We just made it look good.</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-foreground px-4">Built for Happy Brains</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">Science says dopamine helps you focus. We just made it look good.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {features.map((feature, idx) => (
               <motion.div
                 key={idx}
@@ -94,13 +94,13 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1, duration: 0.5 }}
                 whileHover={{ y: -10, transition: { duration: 0.2 } }}
-                className="bg-card rounded-[2.5rem] p-10 hover:shadow-xl transition-shadow border border-border/50 hover:border-primary/20"
+                className="bg-card rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 hover:shadow-xl transition-shadow border border-border/50 hover:border-primary/20"
               >
-                <div className={`w-16 h-16 ${feature.color} rounded-2xl flex items-center justify-center mb-8 shadow-md rotate-3 group-hover:rotate-6 transition-transform`}>
+                <div className={`w-14 h-14 md:w-16 md:h-16 ${feature.color} rounded-2xl flex items-center justify-center mb-6 md:mb-8 shadow-md rotate-3 group-hover:rotate-6 transition-transform`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-foreground">{feature.title}</h3>
-                <p className="text-lg text-muted-foreground leading-relaxed font-medium">
+                <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-foreground">{feature.title}</h3>
+                <p className="text-base md:text-lg text-muted-foreground leading-relaxed font-medium">
                   {feature.description}
                 </p>
               </motion.div>
@@ -163,15 +163,15 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
               className="w-full md:w-1/2"
             >
-              <h2 className="text-4xl md:text-6xl font-bold mb-8 text-foreground leading-tight">
-                We believe <br />
-                productivity <br />
+              <h2 className="text-3xl md:text-6xl font-bold mb-6 md:mb-8 text-foreground leading-tight px-2 md:px-0">
+                We believe <br className="hidden md:block" />
+                productivity <br className="hidden md:block" />
                 should be <span className="text-secondary">cozy.</span>
               </h2>
-              <p className="text-xl text-muted-foreground font-medium mb-8">
+              <p className="text-lg md:text-xl text-muted-foreground font-medium mb-8 px-2 md:px-0">
                 Stop fighting your brain. Start working with it. FocusForge creates a digital environment that feels good to be in.
               </p>
-              <Link href="/about" className="text-secondary font-bold text-xl hover:underline underline-offset-4 decoration-2">
+              <Link href="/about" className="text-secondary font-bold text-xl hover:underline underline-offset-4 decoration-2 px-2 md:px-0">
                 Read our philosophy &rarr;
               </Link>
             </motion.div>
@@ -180,7 +180,7 @@ export default function LandingPage() {
       </section>
 
       {/* Big CTA */}
-      <section className="py-32 bg-primary relative overflow-hidden">
+      <section className="py-20 md:py-32 bg-primary relative overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -188,13 +188,13 @@ export default function LandingPage() {
           transition={{ duration: 0.8 }}
           className="container mx-auto px-6 text-center relative z-10"
         >
-          <h2 className="text-4xl md:text-7xl font-bold text-primary-foreground mb-8 tracking-tight">
-            Ready to build your<br />focus fort?
+          <h2 className="text-3xl sm:text-4xl md:text-7xl font-bold text-primary-foreground mb-6 md:mb-8 tracking-tight">
+            Ready to build your<br className="hidden sm:block" />focus fort?
           </h2>
-          <p className="text-2xl text-primary-foreground/90 mb-12 max-w-2xl mx-auto font-medium">
+          <p className="text-lg md:text-2xl text-primary-foreground/90 mb-10 md:12 max-w-2xl mx-auto font-medium px-4 md:px-0">
             Join thousands of happy brains finding their flow today.
           </p>
-          <Link href="/signup" className="px-12 py-6 rounded-full bg-background text-primary font-bold text-2xl hover:scale-105 transition-transform inline-flex items-center gap-3 shadow-2xl">
+          <Link href="/signup" className="w-full sm:w-auto px-10 md:px-12 py-5 md:py-6 rounded-full bg-background text-primary font-bold text-xl md:text-2xl hover:scale-105 transition-transform inline-flex items-center justify-center gap-3 shadow-2xl">
             Get FocusForge Free
           </Link>
         </motion.div>

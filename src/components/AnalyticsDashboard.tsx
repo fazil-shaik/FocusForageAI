@@ -148,20 +148,20 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
 
                 <div>
                     {data.behavioralAnalysis ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-0">
-                            <div className="space-y-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 relative z-0">
+                            <div className="space-y-6 md:space-y-8">
                                 <div>
-                                    <h4 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                                    <h4 className="text-[10px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] mb-4 md:mb-6 flex items-center gap-3">
                                         Focus Patterns
                                     </h4>
-                                    <div className="grid gap-4">
+                                    <div className="grid gap-3 md:gap-4">
                                         {data.behavioralAnalysis.patterns.map((p, i) => (
                                             <motion.div
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.1 }}
                                                 key={i}
-                                                className="text-sm p-5 rounded-2xl bg-secondary/5 border border-white/5 hover:border-primary/20 hover:bg-secondary/10 transition-all flex items-start gap-4 group"
+                                                className="text-xs md:text-sm p-4 md:p-5 rounded-2xl bg-secondary/5 border border-white/5 hover:border-primary/20 hover:bg-secondary/10 transition-all flex items-start gap-3 md:gap-4 group"
                                             >
                                                 <div className="w-2 h-2 rounded-full bg-primary mt-1.5 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
                                                 <p className="text-foreground/90 font-medium leading-relaxed">{p}</p>
@@ -171,12 +171,12 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                                 </div>
 
                                 <div>
-                                    <h4 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em] mb-6">
+                                    <h4 className="text-[10px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.3em] mb-4 md:mb-6">
                                         Environmental Triggers
                                     </h4>
-                                    <div className="flex flex-wrap gap-3">
+                                    <div className="flex flex-wrap gap-2 md:gap-3">
                                         {data.behavioralAnalysis.triggers.map((t, i) => (
-                                            <span key={i} className="px-6 py-2.5 bg-accent/5 text-accent rounded-2xl text-xs font-black border border-accent/10 hover:bg-accent/10 transition-colors cursor-default capitalize tracking-wide">
+                                            <span key={i} className="px-4 md:px-6 py-2 md:py-2.5 bg-accent/5 text-accent rounded-xl md:rounded-2xl text-[10px] md:text-xs font-black border border-accent/10 hover:bg-accent/10 transition-colors cursor-default capitalize tracking-wide">
                                                 {t}
                                             </span>
                                         ))}
@@ -184,42 +184,42 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                                 </div>
                             </div>
 
-                            <div className="space-y-8">
-                                <div className="bg-primary/5 rounded-[2.5rem] p-10 border border-primary/10 relative overflow-hidden group min-h-[300px]">
+                            <div className="space-y-6 md:space-y-8">
+                                <div className="bg-primary/5 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-primary/10 relative overflow-hidden group min-h-[300px]">
                                     <div className="absolute -top-12 -right-12 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                        <Brain className="w-64 h-64" />
+                                        <Brain className="w-48 md:w-64 h-48 md:h-64" />
                                     </div>
-                                    <h4 className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-8">Optimization Strategy</h4>
-                                    <div className="mb-8">
-                                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest block mb-3">Dominant Factor</span>
-                                        <span className="text-sm font-bold text-primary bg-primary/10 px-5 py-2 rounded-2xl border border-primary/20">
+                                    <h4 className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.3em] mb-6 md:mb-8">Optimization Strategy</h4>
+                                    <div className="mb-6 md:mb-8">
+                                        <span className="text-[9px] md:text-[10px] font-black text-primary/40 uppercase tracking-widest block mb-2 md:mb-3">Dominant Factor</span>
+                                        <span className="text-xs md:text-sm font-bold text-primary bg-primary/10 px-4 md:px-5 py-2 rounded-xl md:rounded-2xl border border-primary/20 inline-block">
                                             {data.behavioralAnalysis.psychologicalFactor}
                                         </span>
                                     </div>
-                                    <div className="space-y-6">
+                                    <div className="space-y-4 md:space-y-6">
                                         {data.behavioralAnalysis.strategy.map((s, i) => (
                                             <motion.div
                                                 key={i}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.5 + (i * 0.1) }}
-                                                className="flex gap-5"
+                                                className="flex gap-4 md:gap-5"
                                             >
-                                                <span className="flex-shrink-0 w-10 h-10 rounded-2xl bg-primary/20 text-primary flex items-center justify-center text-sm font-black border border-primary/10">
+                                                <span className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-primary/20 text-primary flex items-center justify-center text-xs md:text-sm font-black border border-primary/10">
                                                     {i + 1}
                                                 </span>
-                                                <p className="text-sm text-foreground/80 leading-relaxed font-medium pt-2">{s}</p>
+                                                <p className="text-xs md:text-sm text-foreground/80 leading-relaxed font-medium pt-1 md:pt-2">{s}</p>
                                             </motion.div>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between p-6 bg-secondary/5 rounded-3xl border border-white/5">
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-6 bg-secondary/5 rounded-3xl border border-white/5 gap-4">
                                     <div>
-                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Next Week Forecast</p>
-                                        <p className="text-base font-bold text-foreground">Projected Procrastination Risk</p>
+                                        <p className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Next Week Forecast</p>
+                                        <p className="text-sm md:text-base font-bold text-foreground">Projected Procrastination Risk</p>
                                     </div>
-                                    <div className={`px-6 py-3 rounded-2xl text-xs font-black shadow-lg ${data.behavioralAnalysis.riskLevel === 'High'
+                                    <div className={`px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl text-[10px] md:text-xs font-black shadow-lg text-center ${data.behavioralAnalysis.riskLevel === 'High'
                                         ? 'bg-red-500/20 text-red-500 border border-red-500/30'
                                         : data.behavioralAnalysis.riskLevel === 'Medium'
                                             ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30'
@@ -248,15 +248,15 @@ function MetricCard({ title, value, icon, trend }: { title: string, value: strin
     return (
         <motion.div
             whileHover={{ y: -5 }}
-            className="bg-card border border-border p-6 rounded-3xl backdrop-blur-sm shadow-sm group hover:border-primary/20 transition-all"
+            className="bg-card border border-border p-5 md:p-6 rounded-3xl backdrop-blur-sm shadow-sm group hover:border-primary/20 transition-all flex flex-col justify-between"
         >
-            <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-secondary/10 rounded-2xl text-secondary group-hover:scale-110 transition-transform">{icon}</div>
-                <span className="text-[10px] font-bold text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">{trend}</span>
+            <div className="flex justify-between items-start mb-4 md:mb-6">
+                <div className="p-2.5 md:p-3 bg-secondary/10 rounded-xl md:rounded-2xl text-secondary group-hover:scale-110 transition-transform">{icon}</div>
+                <span className="text-[9px] md:text-[10px] font-bold text-green-600 bg-green-500/10 px-2 py-1 md:px-2.5 md:py-1 rounded-full uppercase tracking-wider">{trend}</span>
             </div>
             <div>
-                <p className="text-muted-foreground text-xs mb-1 font-black uppercase tracking-widest">{title}</p>
-                <p className="text-3xl font-black text-foreground tracking-tight">{value}</p>
+                <p className="text-muted-foreground text-[10px] mb-1 font-black uppercase tracking-widest">{title}</p>
+                <p className="text-2xl md:text-3xl font-black text-foreground tracking-tight truncate">{value}</p>
             </div>
         </motion.div>
     );

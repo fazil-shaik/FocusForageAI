@@ -1,43 +1,52 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, CheckSquare, BarChart2, Settings, LogOut, Brain, Sparkles, User, Sun, Moon, Zap, ChevronDown, Menu, X } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
-import { useTheme } from "next-themes";
+import {
+    LayoutDashboard,
+    ListTodo,
+    BarChart3,
+    Settings,
+    User,
+    Brain,
+    Menu,
+    X,
+    LogOut,
+    Trophy
+} from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 import { motion, AnimatePresence } from "framer-motion";
+import { authClient } from "@/lib/auth-client";
 
 interface TopNavProps {
     user: {
         name: string;
         email: string;
-        image?: string | null;
-        xp?: number;
+        image?: string;
     };
 }
 
 export function TopNav({ user }: TopNavProps) {
     const pathname = usePathname();
     const router = useRouter();
-    const { theme, setTheme } = useTheme();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
+    const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
-        setIsMobileMenuOpen(false);
-    }, [pathname]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsMenuOpen(false);
-            }
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 0);
         };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    const navItems = [
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { name: "Tasks", href: "/tasks", icon: ListTodo },
+        { name: "Analytics", href: "/analytics", icon: BarChart3 },
+        { name: "Settings", href: "/settings", icon: Settings },
+    ];
 
     const handleSignOut = async () => {
         await authClient.signOut({
@@ -49,153 +58,166 @@ export function TopNav({ user }: TopNavProps) {
         });
     };
 
-    const toggleTheme = () => {
-        setTheme(theme === "dark" ? "light" : "dark");
-    };
-
     return (
-        <header className="sticky top-0 w-full border-b border-border bg-card/80 backdrop-blur-xl z-50 transition-all">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-16">
-                    {/* Brand */}
-                    <div className="flex items-center gap-8">
-                        <Link href="/dashboard" className="flex items-center gap-2 group">
-                            <div className="p-1 w-10 h-10 bg-primary/10 rounded-xl group-hover:scale-110 transition-transform flex items-center justify-center">
-                                <Brain className="w-6 h-6 text-primary fill-primary/20" />
-                            </div>
-                            <span className="font-black text-xl tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">FocusForge</span>
-                        </Link>
-
-                        {/* Desktop Navigation */}
-                        <nav className="hidden md:flex items-center gap-1">
-                            <NavItem href="/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" active={pathname === "/dashboard"} />
-                            <NavItem href="/planner" icon={<Sparkles className="w-4 h-4" />} label="AI Planner" active={pathname === "/planner"} />
-                            <NavItem href="/focus" icon={<Brain className="w-4 h-4" />} label="Focus" active={pathname === "/focus"} />
-                            <NavItem href="/tasks" icon={<CheckSquare className="w-4 h-4" />} label="Tasks" active={pathname === "/tasks"} />
-                            <NavItem href="/analytics" icon={<BarChart2 className="w-4 h-4" />} label="Stats" active={pathname === "/analytics"} />
-                        </nav>
-                    </div>
-
-                    {/* Right side: XP, Theme, User */}
-                    <div className="flex items-center gap-4">
-                        {/* XP Badge */}
-                        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-bold">
-                            <Zap className="w-3.5 h-3.5" />
-                            {user.xp || 0} XP
+        <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-background/80 backdrop-blur-md border-b border-border shadow-sm' : 'bg-transparent'}`}>
+            <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+                <div className="flex items-center gap-8">
+                    <Link href="/dashboard" className="flex items-center gap-2 group border-none outline-none">
+                        <div className="p-1.5 bg-primary/10 rounded-xl group-hover:scale-110 transition-transform">
+                            <Brain className="w-6 h-6 text-primary fill-primary/20" />
                         </div>
+                        <span className="font-black text-xl tracking-tighter text-foreground hidden sm:block">Forge</span>
+                    </Link>
 
-                        {/* Theme Toggle */}
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 rounded-full hover:bg-secondary/10 transition-colors text-muted-foreground hover:text-foreground relative"
-                        >
-                            <Sun className="w-5 h-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                            <Moon className="absolute top-2 left-2 w-5 h-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                        </button>
-
-                        {/* User Menu */}
-                        <div className="relative" ref={menuRef}>
-                            <button
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="flex items-center gap-2 p-1 pl-1 pr-2 rounded-full hover:bg-secondary/10 transition-colors border border-transparent hover:border-border"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary border border-primary/20 overflow-hidden">
-                                    {user.image ? (
-                                        <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        user.name?.charAt(0) || "U"
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-1">
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all relative ${isActive
+                                        ? "text-primary"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/20"
+                                        }`}
+                                >
+                                    <item.icon className={`w-4 h-4 ${isActive ? "fill-primary/20" : ""}`} />
+                                    {item.name}
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="nav-pill"
+                                            className="absolute inset-0 bg-primary/10 rounded-xl -z-10 border border-primary/20"
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        />
                                     )}
-                                </div>
-                                <span className="hidden sm:inline text-xs font-medium text-foreground">{user.name?.split(' ')[0]}</span>
-                                <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
-                            </button>
+                                </Link>
+                            );
+                        })}
+                    </nav>
+                </div>
 
-                            <AnimatePresence>
-                                {isMenuOpen && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        className="absolute right-0 mt-2 w-56 rounded-2xl bg-card border border-border shadow-2xl p-2 z-[60]"
-                                    >
-                                        <div className="px-3 py-2">
-                                            <p className="text-sm font-bold text-foreground">{user.name}</p>
-                                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                                            <div className="mt-2 flex sm:hidden items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded-lg text-[10px] font-bold">
-                                                <Zap className="w-3 h-3" />
-                                                {user.xp || 0} XP
-                                            </div>
-                                        </div>
-                                        <div className="h-px bg-border my-2" />
-                                        <Link
-                                            href="/settings"
-                                            onClick={() => setIsMenuOpen(false)}
-                                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary/10 transition-colors"
-                                        >
-                                            <Settings className="w-4 h-4" />
-                                            <span>Settings</span>
-                                        </Link>
-                                        <div className="h-px bg-border my-2" />
-                                        <button
-                                            onClick={handleSignOut}
-                                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-500/10 transition-colors"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            <span>Sign Out</span>
-                                        </button>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                <div className="flex items-center gap-2 md:gap-4">
+                    {/* XP Display - Hidden on very small screens */}
+                    <div className="hidden xs:flex items-center gap-2 px-3 py-1.5 bg-secondary/30 rounded-full border border-border">
+                        <div className="w-5 h-5 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow-sm ring-2 ring-amber-400/20">
+                            <Trophy className="w-3 h-3" />
                         </div>
-
-                        {/* Mobile Menu Toggle */}
-                        <button
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="md:hidden p-2 rounded-xl border border-border bg-secondary/5 text-muted-foreground hover:text-foreground transition-all"
-                        >
-                            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                        </button>
+                        <span className="text-sm font-black text-foreground tabular-nums">2,450 <span className="text-[10px] text-muted-foreground ml-0.5">XP</span></span>
                     </div>
+
+                    <div className="hidden sm:block">
+                        <ThemeToggle />
+                    </div>
+
+                    <div className="h-8 w-px bg-border mx-2 hidden md:block" />
+
+                    {/* Desktop Profile Toggle */}
+                    <div className="hidden md:block group relative">
+                        <button className="flex items-center gap-2 p-1.5 rounded-2xl bg-secondary/30 border border-border hover:border-primary/50 transition-all border-none outline-none">
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black shadow-inner">
+                                {user.name.charAt(0)}
+                            </div>
+                            <div className="text-left pr-2">
+                                <p className="text-xs font-black text-foreground leading-none mb-1">{user.name}</p>
+                                <div className="flex items-center gap-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Focused</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        {/* Profile Dropdown */}
+                        <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-2xl shadow-2xl py-2 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all scale-95 group-hover:scale-100 origin-top-right z-50 overflow-hidden">
+                            <div className="px-4 py-3 border-b border-border/50">
+                                <p className="text-sm font-black text-foreground">{user.name}</p>
+                                <p className="text-xs font-bold text-muted-foreground truncate">{user.email}</p>
+                            </div>
+                            <div className="p-1">
+                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-xl transition-all border-none outline-none">
+                                    <User className="w-4 h-4" /> Profile Details
+                                </button>
+                                <button
+                                    onClick={handleSignOut}
+                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-xl transition-all border-none outline-none"
+                                >
+                                    <LogOut className="w-4 h-4" /> Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mobile Menu Toggle */}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="md:hidden p-2 rounded-xl border border-border bg-secondary/5 text-muted-foreground hover:text-foreground transition-all border-none outline-none"
+                    >
+                        {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
                 </div>
             </div>
 
-            {/* Mobile Navigation Container */}
+            {/* Mobile Navigation */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
                     <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="md:hidden border-t border-border bg-card overflow-hidden"
+                        initial={{ opacity: 0, x: "100%" }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: "100%" }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="fixed inset-0 top-[64px] z-40 bg-background md:hidden"
                     >
-                        <nav className="flex flex-col p-4 gap-2">
-                            <NavItem href="/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" active={pathname === "/dashboard"} />
-                            <NavItem href="/planner" icon={<Sparkles className="w-5 h-5" />} label="AI Planner" active={pathname === "/planner"} />
-                            <NavItem href="/focus" icon={<Brain className="w-5 h-5" />} label="Focus" active={pathname === "/focus"} />
-                            <NavItem href="/tasks" icon={<CheckSquare className="w-5 h-5" />} label="Tasks" active={pathname === "/tasks"} />
-                            <NavItem href="/analytics" icon={<BarChart2 className="w-5 h-5" />} label="Stats" active={pathname === "/analytics"} />
+                        <nav className="flex flex-col p-6 gap-2">
+                            {navItems.map((item) => {
+                                const isActive = pathname === item.href;
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        href={item.href}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className={`flex items-center gap-4 p-4 rounded-2xl text-lg font-bold transition-all border-none outline-none ${isActive
+                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                                            }`}
+                                    >
+                                        <item.icon className="w-6 h-6" />
+                                        {item.name}
+                                        {isActive && (
+                                            <div className="ml-auto w-2 h-2 rounded-full bg-white animate-pulse" />
+                                        )}
+                                    </Link>
+                                );
+                            })}
+
+                            <div className="h-px bg-border my-6" />
+
+                            <div className="flex items-center justify-between p-4 bg-secondary/20 rounded-2xl border border-border">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black shadow-lg">
+                                        {user.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black text-foreground">{user.name}</p>
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{user.email}</p>
+                                    </div>
+                                </div>
+                                <ThemeToggle />
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    handleSignOut();
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className="mt-4 flex items-center gap-4 p-4 rounded-2xl text-lg font-bold text-red-500 hover:bg-red-500/10 transition-all text-left border-none outline-none"
+                            >
+                                <LogOut className="w-6 h-6" />
+                                Sign Out
+                            </button>
                         </nav>
                     </motion.div>
                 )}
             </AnimatePresence>
         </header>
-    );
-}
-
-function NavItem({ href, icon, label, active = false }: { href: string; icon: React.ReactNode; label: string; active?: boolean }) {
-    return (
-        <Link href={href} className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all relative group ${active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
-            <span className="relative z-10">{icon}</span>
-            <span className="font-medium text-sm relative z-10">{label}</span>
-            {active && (
-                <motion.div
-                    layoutId="active-top-nav"
-                    className="absolute inset-0 bg-primary/10 rounded-xl border border-primary/20"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                />
-            )}
-        </Link>
     );
 }

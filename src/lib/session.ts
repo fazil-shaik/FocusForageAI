@@ -12,9 +12,9 @@ export async function getSession() {
         });
         return session;
     } catch (e) {
-        console.error("Auth session fetch failed, retrying in 500ms...", e);
-        // Wait 500ms and retry once
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        console.error("Auth session fetch failed, retrying in 100ms...", e);
+        // Wait 100ms and retry once
+        await new Promise((resolve) => setTimeout(resolve, 100));
         try {
             const session = await auth.api.getSession({
                 headers: await headers(),

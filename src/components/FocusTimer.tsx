@@ -218,13 +218,13 @@ export function FocusTimer({ userPlan = "free", recentTasks = [] }: { userPlan?:
     const knobY = isValid ? 140 + radius * Math.sin((currentAngle * Math.PI) / 180) : 140;
 
     return (
-        <div className="lg:col-span-2 bg-card/50 rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[500px] border border-border backdrop-blur-md shadow-sm">
+        <div className="lg:col-span-2 bg-card/50 rounded-3xl p-6 md:p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[450px] md:min-h-[500px] border border-border backdrop-blur-md shadow-sm">
             {/* Adaptive Mode Badge */}
-            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full border text-xs flex items-center gap-2 bg-secondary/10 border-border text-muted-foreground`}>
+            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full border text-[10px] md:text-xs flex items-center gap-2 bg-secondary/10 border-border text-muted-foreground`}>
                 <BrainCircuit className="w-3 h-3 text-primary" /> AI Adaptive Mode
             </div>
 
-            <div className="relative w-72 h-72 flex items-center justify-center mb-12">
+            <div className="relative w-64 h-64 md:w-72 md:h-72 flex items-center justify-center mb-8 md:mb-12">
                 {/* SVG Circular Interaction */}
                 <svg
                     ref={circleRef}
